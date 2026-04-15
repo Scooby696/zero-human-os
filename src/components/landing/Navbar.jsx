@@ -18,6 +18,7 @@ export default function Navbar() {
     { label: "Monetize", href: "/monetization", isRoute: true },
     { label: "AI Docs", href: "/docs", isRoute: true },
     { label: "OS Tools", href: "/tools/opensource", isRoute: true },
+    { label: "Crypto Arch", href: "/crypto-architecture", isRoute: true },
   ];
 
   return (

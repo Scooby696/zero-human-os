@@ -13,6 +13,7 @@ import Audit from './pages/Audit';
 import Monetization from './pages/Monetization';
 import AgentDocs from './pages/AgentDocs';
 import OpenSourceTools from './pages/OpenSourceTools';
+import CryptoArchitecture from './pages/CryptoArchitecture';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,6 +49,7 @@ const AuthenticatedApp = () => {
       <Route path="/monetization" element={<Monetization />} />
       <Route path="/docs" element={<AgentDocs />} />
       <Route path="/tools/opensource" element={<OpenSourceTools />} />
+      <Route path="/crypto-architecture" element={<CryptoArchitecture />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
