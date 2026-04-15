@@ -15,6 +15,7 @@ export default function Navbar() {
     { label: "Roadmap", href: "#roadmap" },
     { label: "Community", href: "#community" },
     { label: "Audit", href: "/audit", isRoute: true },
+    { label: "Monetize", href: "/monetization", isRoute: true },
   ];
 
   return (
