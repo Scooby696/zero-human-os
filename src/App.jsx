@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
+import DashboardAgents from './pages/DashboardAgents';
+import DashboardTools from './pages/DashboardTools';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -36,6 +38,8 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard/agents" element={<DashboardAgents />} />
+      <Route path="/dashboard/tools" element={<DashboardTools />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
