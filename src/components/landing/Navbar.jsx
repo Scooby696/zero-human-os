@@ -9,8 +9,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navLinks = [
-    { label: "Features", href: "#features" },
-    { label: "About", href: "#about" },
+    { label: "Agents", href: "#agents" },
+    { label: "How It Works", href: "#how" },
+    { label: "Tech Stack", href: "#stack" },
+    { label: "Roadmap", href: "#roadmap" },
     { label: "Community", href: "#community" },
   ];
 

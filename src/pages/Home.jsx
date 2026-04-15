@@ -1,9 +1,13 @@
 import React from "react";
 import Navbar from "../components/landing/Navbar";
 import Hero from "../components/landing/Hero";
-import Features from "../components/landing/Features";
-import About from "../components/landing/About";
+import AgentsSection from "../components/landing/AgentsSection";
+import HowItWorks from "../components/landing/HowItWorks";
+import TechStack from "../components/landing/TechStack";
+import Roadmap from "../components/landing/Roadmap";
+import UseCases from "../components/landing/UseCases";
 import Community from "../components/landing/Community";
+import CTA from "../components/landing/CTA";
 import Footer from "../components/landing/Footer";
 
 export default function Home() {
@@ -11,9 +15,13 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <Hero />
-      <Features />
-      <About />
+      <AgentsSection />
+      <HowItWorks />
+      <TechStack />
+      <UseCases />
+      <Roadmap />
       <Community />
+      <CTA />
       <Footer />
     </div>
   );
