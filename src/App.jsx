@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import DashboardAgents from './pages/DashboardAgents';
 import DashboardTools from './pages/DashboardTools';
+import Audit from './pages/Audit';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -40,6 +41,7 @@ const AuthenticatedApp = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/dashboard/agents" element={<DashboardAgents />} />
       <Route path="/dashboard/tools" element={<DashboardTools />} />
+      <Route path="/audit" element={<Audit />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
