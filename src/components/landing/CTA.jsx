@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, MessageCircle, Zap } from "lucide-react";
+import { ArrowRight, MessageCircle, Zap, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 
@@ -63,6 +63,14 @@ export default function CTA() {
             >
               <MessageCircle className="w-4 h-4" />
               t.me/zerohumansystems
+            </a>
+            <span className="w-px h-4 bg-border/50" />
+            <a
+              href="mailto:zerohumansystems@gmail.com"
+              className="flex items-center gap-2 hover:text-foreground transition-colors"
+            >
+              <Mail className="w-4 h-4" />
+              zerohumansystems@gmail.com
             </a>
           </div>
         </motion.div>

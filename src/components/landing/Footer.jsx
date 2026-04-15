@@ -1,5 +1,6 @@
 import React from "react";
 import SocialLinks from "./SocialLinks";
+import { Mail } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -18,6 +19,15 @@ export default function Footer() {
               <p className="text-xs text-muted-foreground">© 2026 All rights reserved.</p>
             </div>
           </div>
+
+          {/* Email */}
+          <a
+            href="mailto:zerohumansystems@gmail.com"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Mail className="w-4 h-4" />
+            zerohumansystems@gmail.com
+          </a>
 
           {/* Social Links */}
           <SocialLinks />

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, MessageCircle, Users } from "lucide-react";
+import { ArrowRight, MessageCircle, Users, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SocialLinks from "./SocialLinks";
 
@@ -28,7 +28,7 @@ export default function Community() {
           </p>
 
           {/* Social cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {/* X / Twitter */}
             <motion.a
               href="https://x.com/zerohuman87307"
@@ -75,6 +75,28 @@ export default function Community() {
                 <p className="text-muted-foreground text-sm mb-4">Join our community channel for discussions, news, and direct communication.</p>
                 <div className="flex items-center gap-2 text-primary text-sm font-medium group-hover:gap-3 transition-all">
                   t.me/zerohumansystems <ArrowRight className="w-4 h-4" />
+                </div>
+              </div>
+            </motion.a>
+
+            {/* Email */}
+            <motion.a
+              href="mailto:zerohumansystems@gmail.com"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="group relative p-8 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all duration-500 hover:shadow-lg hover:shadow-primary/5 text-left"
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-500" />
+              <div className="relative">
+                <div className="inline-flex p-3 rounded-xl bg-green-500/10 mb-5">
+                  <Mail className="w-6 h-6 text-green-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">Email Us</h3>
+                <p className="text-muted-foreground text-sm mb-4">Business inquiries, partnerships, enterprise deployments, and real-world audits.</p>
+                <div className="flex items-center gap-2 text-primary text-sm font-medium group-hover:gap-3 transition-all">
+                  zerohumansystems@gmail.com <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
             </motion.a>
