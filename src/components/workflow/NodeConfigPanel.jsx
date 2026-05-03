@@ -9,6 +9,11 @@ const CONFIG_FIELDS = {
     { key: "fallback_phrase", label: "Fallback Phrase (optional)", type: "text", placeholder: 'e.g. "order created"' },
     { key: "confidence_threshold", label: "Confidence Threshold (0–1)", type: "number", placeholder: "0.8" },
   ],
+  variable: [
+    { key: "variable_name", label: "Variable Name", type: "text", placeholder: 'e.g. user_name, order_id' },
+    { key: "variable_value", label: "Value (or reference {{key}})", type: "text", placeholder: 'e.g. {{order_id}} or static value' },
+    { key: "variable_description", label: "Description (optional)", type: "text", placeholder: 'What is this variable for?' },
+  ],
   condition: [
     { key: "condition_expression", label: "Condition Expression", type: "text", placeholder: 'e.g. inventory > 0' },
     { key: "true_label", label: "True Branch Label", type: "text", placeholder: "Yes / Available" },

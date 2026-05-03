@@ -59,6 +59,8 @@ export function useSimulation(nodes, edges) {
     const visitedNodes = new Set();
     // Data context that flows between nodes
     let context = generateTriggerPayload(start);
+    // Variables storage
+    let variables = {};
 
     while (current && !cancelRef.current) {
       visitedNodes.add(current.id);
@@ -72,8 +74,17 @@ export function useSimulation(nodes, edges) {
       await sleep(stepMs);
       if (cancelRef.current) break;
 
-      const output = processNode(current, context);
+      const output = processNode(current, context, variables);
       context = { ...context, ...output };
+
+      // Handle variable setting
+      if (current.type === "variable") {
+        const varName = current.config?.variable_name;
+        if (varName) {
+          variables[varName] = output.variable_value;
+          addLog(`📌 Set ${varName} = ${output.variable_value}`, "info");
+        }
+      }
 
       setNodeData((prev) => ({
         ...prev,
@@ -140,6 +151,14 @@ export function useSimulation(nodes, edges) {
   };
 }
 
+// ── Helper: Substitute variables in text ──────────────────────────────────────
+function substituteVariables(text, variables) {
+  if (typeof text !== "string") return text;
+  return text.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    return variables[key] !== undefined ? variables[key] : match;
+  });
+}
+
 // ── Node processing — generates simulated output per type ────────────────────
 
 function generateTriggerPayload(node) {
@@ -154,8 +173,17 @@ function generateTriggerPayload(node) {
   };
 }
 
-function processNode(node, ctx) {
+function processNode(node, ctx, variables = {}) {
   switch (node.type) {
+    case "variable": {
+      const varValue = node.config?.variable_value || "undefined";
+      const substituted = substituteVariables(varValue, variables);
+      return {
+        variable_name: node.config?.variable_name || "var",
+        variable_value: substituted,
+        description: node.config?.variable_description || "",
+      };
+    }
     case "trigger":
       return generateTriggerPayload(node);
 
@@ -196,8 +224,9 @@ function processNode(node, ctx) {
 
     case "response": {
       const template = node.config?.response_template || "Your request has been processed.";
+      const substituted = substituteVariables(template, variables);
       return {
-        message: template.replace(/\{\{(\w+)\}\}/g, (_, k) => ctx[k] || k),
+        message: substituted.replace(/\{\{(\w+)\}\}/g, (_, k) => ctx[k] || k),
         voice_speed: node.config?.voice_speed || "normal",
         emotion: node.config?.emotion || "friendly",
         tts_chars: template.length,
@@ -248,6 +277,7 @@ function getNodeLog(node) {
     llm: `🤖 LLM call: "${node.label}"${node.config?.model ? ` [${node.config.model}]` : ""}`,
     action: `🔧 Action: "${node.label}"${node.config?.endpoint_url ? ` → ${node.config.endpoint_url}` : ""}`,
     response: `💬 Response: "${node.label}"`,
+    variable: `📝 Variable: "${node.label}"`,
     end: `⏹ End: "${node.label}"`,
   };
   return labels[node.type] || `▶ Processing "${node.label}"`;
@@ -256,7 +286,7 @@ function getNodeLog(node) {
 function getLogType(type) {
   const map = {
     trigger: "trigger", llm: "llm", action: "action",
-    condition: "condition", response: "response", end: "success",
+    condition: "condition", response: "response", variable: "info", end: "success",
   };
   return map[type] || "info";
 }

@@ -34,6 +34,13 @@ export const NODE_TYPES = {
     icon: "🧠",
     description: "Use AI to decide next step",
   },
+  variable: {
+    label: "Set Variable",
+    color: "bg-pink-500/20 border-pink-500/50 text-pink-400",
+    dot: "bg-pink-400",
+    icon: "📝",
+    description: "Store data in a variable for later use",
+  },
   end: {
     label: "End",
     color: "bg-red-500/20 border-red-500/50 text-red-400",
