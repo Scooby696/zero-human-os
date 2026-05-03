@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { NODE_TYPES } from "./workflowData";
+import ConnectorManager from "../connector/ConnectorManager";
 
-export default function WorkflowSidebar({ onAddNode, onOpenAgentSelector }) {
+export default function WorkflowSidebar({ onAddNode, onOpenAgentSelector, onAddCustomNode }) {
+  const [showConnectors, setShowConnectors] = useState(false);
   return (
     <aside className="w-52 shrink-0 border-r border-border/50 bg-card/40 overflow-y-auto p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between px-1 mb-1">
@@ -34,6 +36,25 @@ export default function WorkflowSidebar({ onAddNode, onOpenAgentSelector }) {
             <p className="text-[10px] opacity-70 leading-relaxed">{def.description}</p>
           </button>
         ))}
+
+      <div className="mt-4 border-t border-border/30 pt-3">
+        <button
+          onClick={() => setShowConnectors(!showConnectors)}
+          className="w-full text-left px-1 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors"
+        >
+          {showConnectors ? "▼ Custom Connectors" : "▶ Custom Connectors"}
+        </button>
+        {showConnectors && (
+          <div className="mt-2 px-1">
+            <ConnectorManager
+              onSelectEndpoint={(node) => {
+                onAddCustomNode?.(node);
+                setShowConnectors(false);
+              }}
+            />
+          </div>
+        )}
+      </div>
 
       <div className="mt-4 border-t border-border/30 pt-3">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">Tips</p>

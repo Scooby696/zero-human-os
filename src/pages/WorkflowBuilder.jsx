@@ -308,7 +308,13 @@ export default function WorkflowBuilder() {
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        <WorkflowSidebar onAddNode={addNode} onOpenAgentSelector={() => setShowAgentSelector(true)} />
+        <WorkflowSidebar 
+          onAddNode={addNode} 
+          onOpenAgentSelector={() => setShowAgentSelector(true)}
+          onAddCustomNode={(node) => {
+            setNodes((prev) => [...prev, node]);
+          }}
+        />
         <SaveTemplateModal
           isOpen={showSaveModal}
           onClose={() => setShowSaveModal(false)}
