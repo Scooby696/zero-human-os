@@ -19,6 +19,7 @@ import WorkflowBuilder from './pages/WorkflowBuilder';
 import PreLaunchAudit from './pages/PreLaunchAudit';
 import Deployment from './pages/Deployment';
 import WebhookDebuggerPage from './pages/WebhookDebuggerPage';
+import CostOptimization from './pages/CostOptimization';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
         <Route path="/deployments" element={<Deployment />} />
         <Route path="/audit/pre-launch-full" element={<PreLaunchAudit />} />
         <Route path="/webhooks/debug" element={<WebhookDebuggerPage />} />
+        <Route path="/cost-optimization" element={<CostOptimization />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <ZHSVoiceButton />

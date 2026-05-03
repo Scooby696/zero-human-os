@@ -1,4 +1,4 @@
-/* eslint-env node */
+/* eslint-env node, jest */
 import '@testing-library/jest-dom';
 
 global.crypto = {
