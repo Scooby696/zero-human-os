@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { FolderOpen, Trash2, Download, ChevronDown, Play, Square } from "lucide-react";
+import { FolderOpen, Trash2, Download, ChevronDown, Play, Square, Zap } from "lucide-react";
 import { DEFAULT_WORKFLOWS } from "./workflowData";
 
-export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, onClear, simState, onSimulate, onSimStop, onResume, isPaused }) {
+export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, onClear, simState, onSimulate, onSimStop, onResume, isPaused, onTidyUp }) {
   const [showTemplates, setShowTemplates] = useState(false);
 
   const exportJSON = () => {
@@ -42,6 +42,16 @@ export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, on
           </div>
         )}
       </div>
+
+      <button
+        onClick={onTidyUp}
+        disabled={nodes.length === 0}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 hover:bg-cyan-400/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        title="Auto-arrange nodes in clean layout"
+      >
+        <Zap className="w-3.5 h-3.5" />
+        Tidy Up
+      </button>
 
       <button
         onClick={exportJSON}

@@ -14,6 +14,7 @@ import { DEFAULT_WORKFLOWS } from "../components/workflow/workflowData";
 import { useSimulation } from "../hooks/useSimulation";
 import { useTemplateManager } from "../hooks/useTemplateManager";
 import { validateWorkflow } from "../utils/workflowValidator";
+import { layoutNodes } from "../utils/layoutAlgorithm";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -133,6 +134,11 @@ export default function WorkflowBuilder() {
 
   const invalidNodeIds = new Set(validationErrors.filter((e) => e.nodeId).map((e) => e.nodeId));
 
+  const handleTidyUp = () => {
+    const arrangedNodes = layoutNodes(nodes, edges);
+    setNodes(arrangedNodes);
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
@@ -180,6 +186,7 @@ export default function WorkflowBuilder() {
           onSimStop={sim.reset}
           onResume={sim.resume}
           isPaused={sim.simState === "paused"}
+          onTidyUp={handleTidyUp}
         />
       </header>
 
