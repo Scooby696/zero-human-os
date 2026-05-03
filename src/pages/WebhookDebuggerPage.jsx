@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AlertCircle, CheckCircle, Clock, RefreshCw, Search, Filter, ChevronDown, Copy, Eye, EyeOff, Play } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, RefreshCw, Search, Filter, ChevronDown, Copy, Eye, EyeOff, Play, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import WebhookDeduplicationMonitor from '@/components/workflow/WebhookDeduplicationMonitor';
+import DLQRecoveryPanel from '@/components/workflow/DLQRecoveryPanel';
+import { dlqRecoveryManager } from '@/utils/dlqRecoveryManager';
 
 function LogViewer({ logs }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -79,7 +81,7 @@ function PayloadViewer({ data, title = 'Payload' }) {
   );
 }
 
-function EventRow({ event, onReplay }) {
+function EventRow({ event, onReplay, onApplyRecovery }) {
   const statusConfig = {
     received: { icon: Clock, color: 'text-slate-400', bg: 'bg-slate-400/10' },
     processing: { icon: RefreshCw, color: 'text-blue-400', bg: 'bg-blue-400/10' },
@@ -107,13 +109,24 @@ function EventRow({ event, onReplay }) {
             {event.status}
           </span>
           {event.status === 'failed' && (
-            <button
-              onClick={() => onReplay(event)}
-              className="p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors"
-              title="Replay event"
-            >
-              <Play className="w-3.5 h-3.5" />
-            </button>
+            <>
+              <button
+                onClick={() => onReplay(event)}
+                className="p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors"
+                title="Replay event"
+              >
+                <Play className="w-3.5 h-3.5" />
+              </button>
+              {onApplyRecovery && (
+                <button
+                  onClick={() => onApplyRecovery(event)}
+                  className="p-2 rounded-lg bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors"
+                  title="Apply recovery rules"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -141,6 +154,7 @@ export default function WebhookDebuggerPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [replayingId, setReplayingId] = useState(null);
+  const [showRecoveryPanel, setShowRecoveryPanel] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -178,6 +192,26 @@ export default function WebhookDebuggerPage() {
       toast.error('Error replaying event: ' + error.message);
     } finally {
       setReplayingId(null);
+    }
+  };
+
+  const handleProcessFailedEvent = async (event) => {
+    const dlqEntry = {
+      id: event.id,
+      webhookTriggerId: event.webhookTriggerId,
+      errorCode: event.errorMessage?.split(':')[0] || 'unknown',
+      errorMessage: event.errorMessage,
+      nodeType: 'webhook_trigger',
+      nodeId: event.webhookTriggerId,
+      workflowId: 'unknown',
+      timestamp: event.created_date,
+    };
+
+    const result = await dlqRecoveryManager.processFailedEntry(dlqEntry);
+    if (result.processed) {
+      toast.success(`Applied ${result.rulesApplied} recovery action(s)`);
+    } else {
+      toast.info('No matching recovery rules found');
     }
   };
 
@@ -233,6 +267,14 @@ export default function WebhookDebuggerPage() {
             <RefreshCw className="w-4 h-4" />
             Refresh
           </button>
+
+          <button
+            onClick={() => setShowRecoveryPanel(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors"
+          >
+            <Zap className="w-4 h-4" />
+            Recovery Rules
+          </button>
         </div>
 
         {/* Deduplication Monitor */}
@@ -269,11 +311,14 @@ export default function WebhookDebuggerPage() {
                 key={event.id}
                 event={event}
                 onReplay={handleReplay}
+                onApplyRecovery={handleProcessFailedEvent}
               />
             ))
           )}
         </div>
       </div>
+
+      <DLQRecoveryPanel isOpen={showRecoveryPanel} onClose={() => setShowRecoveryPanel(false)} />
     </div>
   );
 }
