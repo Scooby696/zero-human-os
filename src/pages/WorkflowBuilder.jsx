@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch, Library, Save, Clock } from "lucide-react";
+import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard } from "lucide-react";
 import { useEffect } from "react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
@@ -22,6 +22,7 @@ import CollaborationSync from "../components/workflow/CollaborationSync";
 import { createVersionControl } from "../utils/versionControl";
 import VersionHistory from "../components/workflow/VersionHistory";
 import AgentSelector from "../components/workflow/AgentSelector";
+import WalletManagement from "../components/workflow/WalletManagement";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -37,6 +38,7 @@ export default function WorkflowBuilder() {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [versions, setVersions] = useState([]);
   const [showAgentSelector, setShowAgentSelector] = useState(false);
+  const [showWalletManagement, setShowWalletManagement] = useState(false);
   const nextId = useRef(100);
   const versionControl = useRef(null);
   const sim = useSimulation(nodes, edges);
@@ -225,6 +227,14 @@ export default function WorkflowBuilder() {
             Templates
           </button>
           <button
+            onClick={() => setShowWalletManagement(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors"
+            title="Manage wallets for paid agents"
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            Wallets
+          </button>
+          <button
             onClick={() => setShowSaveModal(true)}
             disabled={nodes.length === 0}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -336,6 +346,11 @@ export default function WorkflowBuilder() {
         isOpen={showAgentSelector}
         onClose={() => setShowAgentSelector(false)}
         onSelect={handleAgentSelect}
+      />
+      <WalletManagement
+        isOpen={showWalletManagement}
+        onClose={() => setShowWalletManagement(false)}
+        agents={nodes}
       />
     </div>
   );
