@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap, TrendingUp, Lock, Plus } from "lucide-react";
+import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap, TrendingUp, Lock, Plus, DollarSign } from "lucide-react";
 import { useEffect } from "react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
@@ -34,6 +34,7 @@ import WorkspaceInviteModal from "../components/workspace/WorkspaceInviteModal";
 import WorkspaceTeamManager from "../components/workspace/WorkspaceTeamManager";
 import { workspaceManager } from "../utils/workspaceManager";
 import WebhookTriggerNode from "../components/workflow/WebhookTriggerNode";
+import CostEstimatorPanel from "../components/workflow/CostEstimatorPanel";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -57,6 +58,7 @@ export default function WorkflowBuilder() {
   const [scheduleConfig, setScheduleConfig] = useState(null);
   const [showWorkspaceInvite, setShowWorkspaceInvite] = useState(false);
   const [showTeamManager, setShowTeamManager] = useState(false);
+  const [showCostEstimator, setShowCostEstimator] = useState(false);
   const [currentUserId] = useState("user_demo_001");
   const nextId = useRef(100);
   const versionControl = useRef(null);
@@ -294,6 +296,14 @@ export default function WorkflowBuilder() {
             Secret Vault
           </button>
           <button
+            onClick={() => setShowCostEstimator(!showCostEstimator)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 hover:bg-emerald-400/20 transition-colors"
+            title="Pre-execution cost estimator"
+          >
+            <DollarSign className="w-3.5 h-3.5" />
+            Cost Estimate
+          </button>
+          <button
             onClick={() => setShowSaveModal(true)}
             disabled={nodes.length === 0}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -468,6 +478,10 @@ export default function WorkflowBuilder() {
         workspaceId={workspaceManager.getCurrentWorkspace()?.id}
         currentUserId={currentUserId}
       />
+
+      {showCostEstimator && (
+        <CostEstimatorPanel nodes={nodes} edges={edges} onClose={() => setShowCostEstimator(false)} />
+      )}
 
       {showTeamManager && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={() => setShowTeamManager(false)} />

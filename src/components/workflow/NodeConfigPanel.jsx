@@ -62,6 +62,11 @@ const CONFIG_FIELDS = {
     { key: "summary_message", label: "Completion Message (optional)", type: "text", placeholder: "Flow completed successfully." },
     { key: "log_result", label: "Log Result", type: "select", options: ["yes", "no"] },
   ],
+  cost_estimator: [
+    { key: "daily_volume", label: "Projected Daily Volume (events)", type: "number", placeholder: "100" },
+    { key: "target_budget", label: "Target Monthly Budget ($)", type: "number", placeholder: "1000" },
+    { key: "alert_threshold", label: "Alert at % of Budget", type: "number", placeholder: "80" },
+  ],
   error_handler: [
     { key: "error_types", label: "Catch Error Types", type: "text", placeholder: "timeout, 404, 500, all (comma-separated)" },
     { key: "fallback_action", label: "Fallback Action", type: "select", options: ["retry", "skip", "alert", "custom_response"] },

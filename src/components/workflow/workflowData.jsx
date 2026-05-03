@@ -76,6 +76,13 @@ export const NODE_TYPES = {
     icon: "⚠",
     description: "Catch and handle errors from upstream nodes",
   },
+  cost_estimator: {
+    label: "Cost Estimator",
+    color: "bg-green-500/20 border-green-500/50 text-green-400",
+    dot: "bg-green-400",
+    icon: "💰",
+    description: "Calculate and optimize workflow execution costs",
+  },
 };
 
 export const DEFAULT_WORKFLOWS = [

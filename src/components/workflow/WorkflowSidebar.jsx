@@ -20,8 +20,19 @@ export default function WorkflowSidebar({ onAddNode, onOpenAgentSelector, onAddC
         <p className="text-[10px] opacity-70 leading-relaxed">Add x402 or custom agents</p>
       </button>
 
+      <button
+        onClick={() => onAddNode("cost_estimator")}
+        className="w-full text-left px-3 py-2.5 rounded-xl border bg-green-500/20 border-green-500/50 text-green-400 text-xs font-medium transition-all hover:scale-[1.02] active:scale-95"
+      >
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="text-base leading-none">💰</span>
+          <span className="font-semibold">Cost Estimator</span>
+        </div>
+        <p className="text-[10px] opacity-70 leading-relaxed">Calculate execution costs</p>
+      </button>
+
       {Object.entries(NODE_TYPES)
-        .filter(([type]) => type !== "agent")
+        .filter(([type]) => type !== "agent" && type !== "cost_estimator")
         .map(([type, def]) => (
           <button
             key={type}
