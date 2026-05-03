@@ -58,6 +58,7 @@ const AuthenticatedApp = () => {
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/audit/pre-launch" element={<PreLaunchAudit />} />
         <Route path="/deployments" element={<Deployment />} />
+        <Route path="/audit/pre-launch-full" element={<PreLaunchAudit />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <ZHSVoiceButton />

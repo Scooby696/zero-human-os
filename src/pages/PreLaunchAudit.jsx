@@ -1,422 +1,452 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronRight, AlertCircle, CheckCircle, AlertTriangle, Lock, Zap, TrendingUp } from "lucide-react";
+import { AlertCircle, CheckCircle, AlertTriangle, Lock, Shield, Zap, Server, Users, Code, Database } from "lucide-react";
 
-export default function PreLaunchAudit() {
-  const [expandedSections, setExpandedSections] = useState(["functionality", "security", "realworld"]);
+const AUDIT_CATEGORIES = {
+  functionality: {
+    title: "Functionality",
+    icon: Zap,
+    items: [
+      {
+        id: "workflow-canvas",
+        name: "Workflow Canvas & Node System",
+        status: "pass",
+        details: "Complete drag-drop workflow builder with 10+ node types implemented",
+      },
+      {
+        id: "real-time-collab",
+        name: "Real-time Collaboration",
+        status: "warning",
+        details: "Presence indicators exist but websocket sync not persisted to database",
+      },
+      {
+        id: "workspace-mgmt",
+        name: "Workspace & Team Management",
+        status: "pass",
+        details: "Role-based access (Viewer/Editor/Admin) with invites and permissions implemented",
+      },
+      {
+        id: "webhook-triggers",
+        name: "Webhook Triggers",
+        status: "pass",
+        details: "Secure public URLs with token auth and IP whitelisting, but events not persisted",
+      },
+      {
+        id: "simulation",
+        name: "Workflow Simulation & Testing",
+        status: "pass",
+        details: "Full simulation mode with breakpoints, node data inspection, and export",
+      },
+      {
+        id: "secret-vault",
+        name: "Secret Vault & Credential Management",
+        status: "warning",
+        details: "Frontend-only encryption (base64), no backend key management",
+      },
+      {
+        id: "error-handling",
+        name: "Error Handler Nodes",
+        status: "pass",
+        details: "Retry logic, fallbacks, and alert notifications configured per node",
+      },
+      {
+        id: "version-control",
+        name: "Version Control & History",
+        status: "pass",
+        details: "Local version snapshots with restore capability",
+      },
+    ],
+  },
+  security: {
+    title: "Security",
+    icon: Shield,
+    items: [
+      {
+        id: "auth",
+        name: "Authentication",
+        status: "pass",
+        details: "Base44 SDK handles auth, user session checked on app load",
+      },
+      {
+        id: "rbac",
+        name: "Role-Based Access Control",
+        status: "pass",
+        details: "Workspace roles enforced on client-side, permission checks exist",
+      },
+      {
+        id: "secret-encryption",
+        name: "Secret Encryption",
+        status: "critical",
+        details: "⚠️ CRITICAL: Frontend-only base64 encryption is NOT secure. Secrets transmitted/stored insecurely",
+        action: "Move to Backend KMS (AWS Secrets Manager/HashiCorp Vault)",
+      },
+      {
+        id: "data-persistence",
+        name: "Data Persistence",
+        status: "critical",
+        details: "⚠️ CRITICAL: All data (workspaces, workflows, secrets) stored in-memory. Lost on app restart",
+        action: "Implement persistent database (PostgreSQL/MongoDB) with Row-Level Security",
+      },
+      {
+        id: "webhook-auth",
+        name: "Webhook Authentication",
+        status: "warning",
+        details: "Token-based auth implemented but no HMAC signature verification",
+        action: "Add HMAC-SHA256 signature verification for webhook requests",
+      },
+      {
+        id: "input-validation",
+        name: "Input Validation",
+        status: "warning",
+        details: "Limited server-side validation on webhook payloads, no rate limiting",
+        action: "Add request size limits, JSON schema validation, and rate limiting",
+      },
+      {
+        id: "cors",
+        name: "CORS & Headers",
+        status: "warning",
+        details: "No explicit CORS policy or security headers configured",
+        action: "Configure CORS, Content-Security-Policy, X-Frame-Options",
+      },
+      {
+        id: "sql-injection",
+        name: "Data Sanitization",
+        status: "pass",
+        details: "No SQL used (in-memory), but workflow payload injection possible in simulation",
+      },
+    ],
+  },
+  production: {
+    title: "Production Readiness",
+    icon: Server,
+    items: [
+      {
+        id: "scaling",
+        name: "Scalability",
+        status: "critical",
+        details: "⚠️ In-memory state limits to single instance. No horizontal scaling possible",
+        action: "Implement distributed state management (Redis/Pub-Sub)",
+      },
+      {
+        id: "monitoring",
+        name: "Monitoring & Logging",
+        status: "warning",
+        details: "Basic console.log statements, no structured logging or metrics",
+        action: "Add Sentry/DataDog for error tracking and performance monitoring",
+      },
+      {
+        id: "performance",
+        name: "Performance",
+        status: "warning",
+        details: "Canvas rendering with 100+ nodes may be slow, no virtualization",
+        action: "Implement React virtualization for large node lists",
+      },
+      {
+        id: "error-recovery",
+        name: "Error Recovery & Resilience",
+        status: "warning",
+        details: "No circuit breakers, retry logic on 429/503 but limited",
+        action: "Add exponential backoff, circuit breakers, and DLQ for failed events",
+      },
+      {
+        id: "testing",
+        name: "Testing Coverage",
+        status: "critical",
+        details: "⚠️ No unit/integration tests found, only manual simulation testing",
+        action: "Add Jest unit tests and Cypress E2E tests (target 80%+ coverage)",
+      },
+      {
+        id: "api-versioning",
+        name: "API Versioning",
+        status: "warning",
+        details: "No API versioning strategy for webhook endpoints",
+        action: "Implement /api/v1/ versioning for breaking changes",
+      },
+      {
+        id: "documentation",
+        name: "API Documentation",
+        status: "warning",
+        details: "Webhook URLs shown in UI but no OpenAPI/Swagger spec",
+        action: "Generate OpenAPI spec for webhook/API endpoints",
+      },
+      {
+        id: "deployment",
+        name: "Deployment & DevOps",
+        status: "warning",
+        details: "No CI/CD pipeline, env config in code, no secrets management",
+        action: "Setup GitHub Actions CI/CD with automated testing and deployment",
+      },
+    ],
+  },
+};
 
-  const toggleSection = (section) => {
-    setExpandedSections((prev) =>
-      prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]
-    );
+const BLOCKERS = [
+  {
+    severity: "critical",
+    issue: "No Persistent Database",
+    impact: "All user data lost on restart; unacceptable for production",
+    required: "PostgreSQL/MongoDB with proper indexing and backups",
+  },
+  {
+    severity: "critical",
+    issue: "Frontend-Only Secret Encryption",
+    impact: "Secrets visible in browser memory/network traffic; major compliance violation",
+    required: "Backend KMS with encrypted-at-rest storage",
+  },
+  {
+    severity: "critical",
+    issue: "No Testing Suite",
+    impact: "Cannot confidently deploy; regressions undetected",
+    required: "Jest unit tests + Cypress E2E tests (80%+ coverage)",
+  },
+  {
+    severity: "high",
+    issue: "No Monitoring/Observability",
+    impact: "Production incidents invisible; impossible to debug",
+    required: "Sentry, DataDog, or similar APM/error tracking",
+  },
+  {
+    severity: "high",
+    issue: "Single-Instance Only (In-Memory State)",
+    impact: "Cannot scale; no high availability",
+    required: "Distributed state (Redis) or move to persistent DB",
+  },
+];
+
+const DEPLOYMENT_CHECKLIST = [
+  {
+    phase: "Phase 1: Data Layer (Week 1-2)",
+    items: [
+      "✓ Setup PostgreSQL with Row-Level Security policies",
+      "✓ Create schema for workspaces, workflows, invites, webhooks, secrets",
+      "✓ Implement Base44 SDK entity integration",
+      "✓ Run migrations and test data integrity",
+    ],
+  },
+  {
+    phase: "Phase 2: Security Hardening (Week 2-3)",
+    items: [
+      "✓ Move secrets to AWS Secrets Manager / HashiCorp Vault",
+      "✓ Add HMAC signature validation to webhooks",
+      "✓ Implement request size limits & rate limiting",
+      "✓ Add CORS and security headers",
+      "✓ Enable Row-Level Security on all data tables",
+    ],
+  },
+  {
+    phase: "Phase 3: Testing & QA (Week 3-4)",
+    items: [
+      "✓ Write Jest unit tests (auth, workspace, webhooks)",
+      "✓ Write Cypress E2E tests (workflow creation, collab, invites)",
+      "✓ Load test with k6 (1000+ concurrent users)",
+      "✓ Security audit with OWASP Top 10 checklist",
+    ],
+  },
+  {
+    phase: "Phase 4: Deployment Infrastructure (Week 4)",
+    items: [
+      "✓ Setup GitHub Actions CI/CD pipeline",
+      "✓ Configure Sentry/DataDog monitoring",
+      "✓ Setup database backups and recovery procedures",
+      "✓ Configure CloudFlare/WAF for DDoS protection",
+    ],
+  },
+  {
+    phase: "Phase 5: Pre-Launch (Final Week)",
+    items: [
+      "✓ Run full security penetration test",
+      "✓ Verify SLA targets (99.9% uptime, <100ms latency)",
+      "✓ Conduct disaster recovery drill",
+      "✓ Update privacy policy & terms of service",
+      "✓ Launch beta to 50 users, gather feedback",
+      "✓ Fix critical bugs, scale resources as needed",
+    ],
+  },
+];
+
+const AuditItem = ({ item }) => {
+  const statusConfig = {
+    pass: { icon: CheckCircle, color: "text-green-400", bg: "bg-green-400/10" },
+    warning: { icon: AlertTriangle, color: "text-amber-400", bg: "bg-amber-400/10" },
+    critical: { icon: AlertCircle, color: "text-red-400", bg: "bg-red-400/10" },
   };
 
-  const AuditItem = ({ status, title, description, details }) => (
-    <div className={`p-4 rounded-lg border ${
-      status === "pass" ? "bg-green-400/10 border-green-400/30" :
-      status === "warn" ? "bg-amber-400/10 border-amber-400/30" :
-      "bg-red-400/10 border-red-400/30"
-    }`}>
+  const config = statusConfig[item.status];
+  const Icon = config.icon;
+
+  return (
+    <div className={`p-3 rounded-lg border border-border/30 ${config.bg}`}>
       <div className="flex items-start gap-3">
-        {status === "pass" && <CheckCircle className="w-5 h-5 text-green-400 mt-0.5 shrink-0" />}
-        {status === "warn" && <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />}
-        {status === "fail" && <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />}
-        <div className="flex-1">
-          <h4 className="font-semibold text-foreground">{title}</h4>
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
-          {details && (
-            <div className="mt-2 p-2 bg-background/50 rounded text-xs text-muted-foreground space-y-1">
-              {details.map((detail, i) => <div key={i}>• {detail}</div>)}
-            </div>
+        <Icon className={`w-4 h-4 ${config.color} mt-0.5 shrink-0`} />
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-semibold ${config.color}`}>{item.name}</p>
+          <p className="text-xs text-foreground/70 mt-1">{item.details}</p>
+          {item.action && (
+            <p className="text-xs text-foreground/50 mt-1.5 font-mono">→ {item.action}</p>
           )}
         </div>
       </div>
     </div>
   );
+};
 
-  const AuditSection = ({ title, icon: Icon, description, items, section }) => (
-    <div className="border border-border/50 rounded-xl overflow-hidden">
-      <button
-        onClick={() => toggleSection(section)}
-        className="w-full flex items-center justify-between px-6 py-4 bg-secondary/20 hover:bg-secondary/30 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5 text-primary" />
-          <div className="text-left">
-            <h3 className="font-bold text-foreground">{title}</h3>
-            <p className="text-xs text-muted-foreground mt-1">{description}</p>
-          </div>
-        </div>
-        {expandedSections.includes(section) ? (
-          <ChevronDown className="w-5 h-5 text-muted-foreground" />
-        ) : (
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        )}
-      </button>
-      {expandedSections.includes(section) && (
-        <div className="px-6 py-4 space-y-3 bg-background/40">
-          {items.map((item, i) => (
-            <AuditItem key={i} {...item} />
-          ))}
-        </div>
-      )}
+const BlockerCard = ({ blocker }) => (
+  <div className="p-4 rounded-lg border border-red-400/30 bg-red-400/10">
+    <div className="flex items-start gap-3">
+      <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-red-300">{blocker.issue}</p>
+        <p className="text-xs text-foreground/70 mt-1"><strong>Impact:</strong> {blocker.impact}</p>
+        <p className="text-xs text-foreground/70 mt-1"><strong>Required Fix:</strong> {blocker.required}</p>
+      </div>
     </div>
+  </div>
+);
+
+export default function PreLaunchAudit() {
+  const [expandedCategory, setExpandedCategory] = useState(null);
+
+  const getCategoryStats = (category) => {
+    const items = category.items;
+    return {
+      total: items.length,
+      pass: items.filter((i) => i.status === "pass").length,
+      warning: items.filter((i) => i.status === "warning").length,
+      critical: items.filter((i) => i.status === "critical").length,
+    };
+  };
+
+  const overallStats = {
+    pass: Object.values(AUDIT_CATEGORIES).flatMap((c) => c.items).filter((i) => i.status === "pass").length,
+    warning: Object.values(AUDIT_CATEGORIES).flatMap((c) => c.items).filter((i) => i.status === "warning").length,
+    critical: Object.values(AUDIT_CATEGORIES).flatMap((c) => c.items).filter((i) => i.status === "critical").length,
+    total: Object.values(AUDIT_CATEGORIES).flatMap((c) => c.items).length,
+  };
+
+  const readinessScore = Math.round(
+    ((overallStats.pass * 100 + overallStats.warning * 25 + overallStats.critical * 0) / 
+    (overallStats.total * 100)) * 100
   );
 
-  const functionalityItems = [
-    {
-      status: "pass",
-      title: "Workflow Canvas",
-      description: "Node creation, deletion, connection, dragging, and panning all functional",
-      details: ["✓ All 10 node types working", "✓ Edge creation and deletion", "✓ Canvas pan and zoom"]
-    },
-    {
-      status: "pass",
-      title: "Node Configuration",
-      description: "Node label editing and configuration panel fully operational",
-      details: ["✓ All node types have required config fields", "✓ Real-time label updates", "✓ Config persistence"]
-    },
-    {
-      status: "pass",
-      title: "Simulation Engine",
-      description: "Workflow test mode with breakpoints and data flow inspection",
-      details: ["✓ Simulation runs without errors", "✓ Breakpoint pausing works", "✓ Data flow tracking accurate"]
-    },
-    {
-      status: "pass",
-      title: "Template Library Modal",
-      description: "Browse, preview, and import pre-built workflow templates with category filtering",
-      details: ["✓ 5 pre-built templates included", "✓ Search and category filters work", "✓ Template import creates correct nodes/edges", "✓ Preview shows all node details"]
-    },
-    {
-      status: "pass",
-      title: "Version Control",
-      description: "Save, restore, and manage workflow snapshots with labels",
-      details: ["✓ Version saving functional", "✓ Restore preserves exact state", "✓ Delete and rename working"]
-    },
-    {
-      status: "pass",
-      title: "Agent Integration",
-      description: "Agent selector and x402 agent node configuration",
-      details: ["✓ Agent registry loads correctly", "✓ Custom agent nodes created", "✓ Agent config persists"]
-    },
-    {
-      status: "pass",
-      title: "Webhook Debugger",
-      description: "Capture and inspect incoming/outgoing webhook payloads with headers and status codes",
-      details: ["✓ Logs capture requests/responses", "✓ JSON tree viewer works", "✓ Header inspection functional", "✓ Search and filtering implemented"]
-    },
-    {
-      status: "pass",
-      title: "Advanced Scheduler",
-      description: "Cron-based scheduling with retry logic, rate limiting, and budget caps",
-      details: ["✓ 10+ preset schedules available", "✓ Custom cron expression support", "✓ Timezone selection working", "✓ Retry backoff strategy implemented"]
-    },
-    {
-      status: "pass",
-      title: "Execution Analytics",
-      description: "Track performance metrics and cost with optimization recommendations",
-      details: ["✓ Metrics calculation accurate", "✓ Recommendations algorithm working", "✓ Historical tracking enabled", "✓ Cost per execution calculated"]
-    },
-    {
-      status: "warn",
-      title: "Real-Time Collaboration",
-      description: "Multi-user editing with cursor tracking and presence",
-      details: ["⚠ Tested with mock users only", "⚠ Needs WebSocket server validation", "⚠ Conflict resolution untested with >3 users"]
-    },
-    {
-      status: "pass",
-      title: "Export/Import",
-      description: "Workflow JSON export and PDF simulation reports",
-      details: ["✓ JSON export creates valid files", "✓ PDF generation works", "✓ Imports parse correctly"]
-    },
-    {
-      status: "warn",
-      title: "Voice Integration",
-      description: "LiveKit voice-to-voice assistant connection",
-      details: ["⚠ Requires valid LiveKit token", "⚠ Microphone permissions needed", "⚠ Transcript reliability untested in noisy environments"]
-    },
-    {
-      status: "pass",
-      title: "Wallet Management",
-      description: "Agent wallet creation, fund tracking, and viability analysis",
-      details: ["✓ Wallet CRUD operations work", "✓ Cost calculations accurate", "✓ LocalStorage persistence verified"]
-    }
-  ];
-
-  const securityItems = [
-    {
-      status: "fail",
-      title: "Authentication",
-      description: "User identity verification and session management",
-      details: ["❌ No multi-factor authentication (MFA)", "❌ Session timeout not implemented", "❌ No rate limiting on login"]
-    },
-    {
-      status: "fail",
-      title: "Authorization",
-      description: "Role-based access control (RBAC) and permissions",
-      details: ["❌ No workflow-level access control", "❌ All users see all agents", "❌ No audit logging of changes"]
-    },
-    {
-      status: "warn",
-      title: "Data Encryption",
-      description: "Encryption at rest and in transit",
-      details: ["⚠ HTTPS/TLS in production only", "⚠ Sensitive config stored in localStorage (unencrypted)", "⚠ Agent API keys visible in frontend logs"]
-    },
-    {
-      status: "fail",
-      title: "API Security",
-      description: "Backend endpoint protection and input validation",
-      details: ["❌ No CORS restriction on /voiceToken endpoint", "❌ No request body validation on functions", "❌ Missing API key rotation mechanism"]
-    },
-    {
-      status: "fail",
-      title: "Secret Management",
-      description: "Secure handling of API keys and credentials",
-      details: ["❌ VOCAL_BRIDGE_API_KEY logged in console", "❌ Agent API keys hardcoded in templates", "❌ No secret expiration policy"]
-    },
-    {
-      status: "warn",
-      title: "Webhook Security",
-      description: "Webhook endpoint validation and payload verification",
-      details: ["⚠ Webhook payloads logged but not encrypted", "⚠ No signature verification on incoming webhooks", "⚠ Debugger tool exposes sensitive request data"]
-    },
-    {
-      status: "warn",
-      title: "Input Validation",
-      description: "Sanitization of user inputs and workflow configs",
-      details: ["⚠ Node labels accept any input (XSS risk)", "⚠ Webhook URLs not validated", "⚠ JSON schema fields not sanitized", "⚠ Cron expressions not validated"]
-    },
-    {
-      status: "fail",
-      title: "Dependency Vulnerabilities",
-      description: "Third-party package security",
-      details: ["❌ @livekit/components-react has 2 medium CVEs", "❌ Dependencies not pinned to patch versions", "❌ No automated vulnerability scanning"]
-    },
-    {
-      status: "warn",
-      title: "Error Handling",
-      description: "Sensitive information exposure in error messages",
-      details: ["⚠ Stack traces visible in console", "⚠ API error responses show internal paths", "⚠ Webhook errors logged with full payloads"]
-    },
-    {
-      status: "fail",
-      title: "CSRF Protection",
-      description: "Cross-site request forgery prevention",
-      details: ["❌ No CSRF tokens on state-changing operations", "❌ No SameSite cookie policy", "❌ Webhook actions lack origin verification"]
-    },
-    {
-      status: "warn",
-      title: "Budget & Rate Limiting",
-      description: "Enforcement of cost caps and request limits",
-      details: ["⚠ Budget caps configured but not enforced", "⚠ Rate limits not applied globally", "⚠ No per-user quota system"]
-    },
-    {
-      status: "warn",
-      title: "Data Privacy",
-      description: "User data handling and GDPR compliance",
-      details: ["⚠ No data retention policy", "⚠ No user deletion/export mechanism", "⚠ Execution logs stored indefinitely"]
-    }
-  ];
-
-  const realworldItems = [
-    {
-      status: "pass",
-      title: "Execution Analytics",
-      description: "Performance metrics and cost tracking with recommendations",
-      details: ["✓ Metrics collection working", "✓ Cost per execution calculated", "✓ Success rate tracking enabled", "✓ Recommendations algorithm implemented"]
-    },
-    {
-      status: "warn",
-      title: "Scalability",
-      description: "Performance under production load",
-      details: ["⚠ No load testing (stress test at 1000 concurrent users needed)", "⚠ Canvas becomes sluggish >100 nodes", "⚠ Scheduler not tested at 10k+ executions/day"]
-    },
-    {
-      status: "warn",
-      title: "Uptime & Reliability",
-      description: "99.9% SLA readiness and retry mechanisms",
-      details: ["⚠ Retry logic implemented but untested at scale", "⚠ No backup/disaster recovery plan", "⚠ Single-region deployment only"]
-    },
-    {
-      status: "fail",
-      title: "Monitoring & Observability",
-      description: "Application health tracking and diagnostics",
-      details: ["❌ No application performance monitoring (APM)", "❌ No centralized logging (ELK, Datadog, etc.)", "❌ Execution logs only stored in memory"]
-    },
-    {
-      status: "fail",
-      title: "Incident Response",
-      description: "Procedures for handling outages and data breaches",
-      details: ["❌ No runbook documentation", "❌ No incident communication template", "❌ No post-mortem process"]
-    },
-    {
-      status: "warn",
-      title: "Scheduler Production Readiness",
-      description: "Cron scheduling and workflow automation reliability",
-      details: ["⚠ Cron parser simplified (needs production cron-parser library)", "⚠ Timezone handling not validated across DST", "⚠ No missed execution recovery"]
-    },
-    {
-      status: "warn",
-      title: "Webhook Reliability",
-      description: "Webhook delivery and retry guarantees",
-      details: ["⚠ Debugger captures payloads but doesn't store them", "⚠ No webhook retry mechanism implemented", "⚠ No delivery guarantees (at-least-once, at-most-once)"]
-    },
-    {
-      status: "warn",
-      title: "Onboarding",
-      description: "User training and documentation",
-      details: ["⚠ Template library helps onboarding", "⚠ No video guides for scheduler/analytics", "⚠ Webhook debugger needs tutorial", "⚠ No getting started checklist"]
-    },
-    {
-      status: "fail",
-      title: "Support Infrastructure",
-      description: "User support systems and SLAs",
-      details: ["❌ No support ticket system", "❌ No FAQ or knowledge base", "❌ No support email/chat channel"]
-    },
-    {
-      status: "warn",
-      title: "Data Persistence",
-      description: "Long-term data storage and recovery",
-      details: ["⚠ Workflows stored in localStorage only", "⚠ Execution logs not persisted", "⚠ No cloud backup for schedules"]
-    },
-    {
-      status: "fail",
-      title: "Compliance Documentation",
-      description: "SOC 2, Privacy Policy, Terms of Service",
-      details: ["❌ No Privacy Policy published", "❌ No Terms of Service", "❌ SOC 2 Type II not started"]
-    },
-    {
-      status: "warn",
-      title: "Cost Management Enforcement",
-      description: "Budget caps and rate limiting enforcement",
-      details: ["⚠ Budget caps configurable but not enforced", "⚠ Rate limits not applied to executions", "⚠ No automatic workflow pause on budget exceeded"]
-    },
-    {
-      status: "fail",
-      title: "User Feedback Loop",
-      description: "Gathering and acting on user feedback",
-      details: ["❌ No in-app feedback mechanism", "❌ No feature request voting", "❌ No user research plan"]
-    }
-  ];
-
-  const criticalBlocking = [
-    "Authentication & authorization (basic RBAC required)",
-    "API security (CORS, input validation, rate limiting)",
-    "Dependency vulnerability fixes (LiveKit CVEs)",
-    "Monitoring & alerting (error tracking minimum)",
-    "Data backups (cloud storage for workflows)",
-    "Privacy Policy & Terms of Service"
-  ];
-
-  const highPriority = [
-    "Multi-factor authentication (MFA)",
-    "Automated security scanning",
-    "User support system",
-    "Documentation & onboarding",
-    "Database encryption",
-    "Incident response plan"
-  ];
-
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-3">Pre-Launch Audit</h1>
-          <p className="text-muted-foreground">Comprehensive functionality, security, and real-world readiness assessment for ZHS platform</p>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-foreground">Pre-Launch Audit Report</h1>
+          <p className="text-muted-foreground">
+            Comprehensive security, functionality, and production readiness assessment
+          </p>
         </div>
 
-        {/* Executive Summary */}
-        <div className="bg-red-400/10 border border-red-400/30 rounded-xl p-6 mb-8">
-          <div className="flex gap-3 mb-4">
-            <AlertCircle className="w-6 h-6 text-red-400 shrink-0 mt-1" />
+        {/* Overall Score */}
+        <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+          <div className="flex items-start justify-between">
             <div>
-              <h2 className="font-bold text-lg text-foreground mb-2">🚨 NOT READY FOR PRODUCTION</h2>
-              <p className="text-muted-foreground">6 critical blocking issues must be resolved before launch. See checklist below.</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">
+                Overall Readiness
+              </p>
+              <p className="text-4xl font-bold text-foreground">{readinessScore}%</p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm font-semibold text-green-400">{overallStats.pass} Pass</div>
+              <div className="text-sm font-semibold text-amber-400">{overallStats.warning} Warning</div>
+              <div className="text-sm font-semibold text-red-400">{overallStats.critical} Blocker</div>
             </div>
           </div>
+          <p className="text-xs text-red-300 font-semibold">
+            ⚠️ {BLOCKERS.length} Critical Blockers Found — Cannot launch without addressing these
+          </p>
         </div>
 
-        {/* Critical Blocking Issues */}
-        <div className="bg-card border border-border/50 rounded-xl p-6 mb-8">
-          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-400" />
-            Critical Blocking Issues
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {criticalBlocking.map((issue, i) => (
-              <div key={i} className="flex gap-3 p-3 rounded-lg bg-red-400/10 border border-red-400/20">
-                <div className="w-2 h-2 rounded-full bg-red-400 mt-2 shrink-0" />
-                <p className="text-sm text-foreground">{issue}</p>
-              </div>
+        {/* Critical Blockers */}
+        <div className="space-y-2">
+          <h2 className="text-lg font-bold text-foreground">🚨 Critical Blockers</h2>
+          <div className="space-y-2">
+            {BLOCKERS.map((blocker, i) => (
+              <BlockerCard key={i} blocker={blocker} />
             ))}
           </div>
         </div>
 
-        {/* High Priority Items */}
-        <div className="bg-card border border-border/50 rounded-xl p-6 mb-8">
-          <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-400" />
-            High Priority (Before Public Launch)
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {highPriority.map((issue, i) => (
-              <div key={i} className="flex gap-3 p-3 rounded-lg bg-amber-400/10 border border-amber-400/20">
-                <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 shrink-0" />
-                <p className="text-sm text-foreground">{issue}</p>
+        {/* Audit Categories */}
+        <div className="space-y-3">
+          {Object.entries(AUDIT_CATEGORIES).map(([key, category]) => {
+            const Icon = category.icon;
+            const stats = getCategoryStats(category);
+            const isExpanded = expandedCategory === key;
+
+            return (
+              <div key={key} className="rounded-lg border border-border/50 overflow-hidden bg-card/50">
+                <button
+                  onClick={() => setExpandedCategory(isExpanded ? null : key)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-secondary/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-5 h-5 text-primary" />
+                    <div className="text-left">
+                      <h3 className="text-sm font-bold text-foreground">{category.title}</h3>
+                      <p className="text-xs text-muted-foreground/70">
+                        {stats.pass} pass · {stats.warning} warning · {stats.critical} critical
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-green-400">{stats.pass}/{stats.total}</p>
+                  </div>
+                </button>
+
+                {isExpanded && (
+                  <div className="px-4 pb-4 pt-2 space-y-2 border-t border-border/30 bg-background/50">
+                    {category.items.map((item) => (
+                      <AuditItem key={item.id} item={item} />
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {/* Audit Sections */}
-        <div className="space-y-6">
-          <AuditSection
-            title="Functionality Audit"
-            icon={Zap}
-            description="Feature completeness and operational correctness"
-            section="functionality"
-            items={functionalityItems}
-          />
-
-          <AuditSection
-            title="Security Audit"
-            icon={Lock}
-            description="Vulnerability assessment and security best practices"
-            section="security"
-            items={securityItems}
-          />
-
-          <AuditSection
-            title="Real-World Readiness"
-            icon={TrendingUp}
-            description="Production deployment and operational maturity"
-            section="realworld"
-            items={realworldItems}
-          />
-        </div>
-
-        {/* Recommended Next Steps */}
-        <div className="mt-12 bg-primary/10 border border-primary/30 rounded-xl p-6">
-          <h2 className="text-lg font-bold text-foreground mb-4">Recommended Launch Roadmap</h2>
+        {/* Deployment Roadmap */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-bold text-foreground">📋 Launch Roadmap (4-5 Weeks)</h2>
           <div className="space-y-3">
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">Phase 1: Secure MVP (2-3 weeks)</h3>
-              <p className="text-sm text-muted-foreground">Fix critical blocking issues, implement basic auth/RBAC, fix CVEs, add monitoring</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">Phase 2: Hardening (2-3 weeks)</h3>
-              <p className="text-sm text-muted-foreground">Security testing, compliance docs, backup systems, incident response plan</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">Phase 3: Beta Launch (1 week)</h3>
-              <p className="text-sm text-muted-foreground">Private beta with 50-100 trusted users, gather feedback, stress test at scale</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">Phase 4: Public Launch (1 week)</h3>
-              <p className="text-sm text-muted-foreground">Full production deployment, support systems online, monitoring active</p>
-            </div>
+            {DEPLOYMENT_CHECKLIST.map((phase, i) => (
+              <div key={i} className="p-4 rounded-lg bg-card border border-border/50">
+                <h3 className="text-sm font-bold text-foreground mb-2">{phase.phase}</h3>
+                <ul className="space-y-1">
+                  {phase.items.map((item, j) => (
+                    <li key={j} className="text-xs text-foreground/70 flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
+        </div>
+
+        {/* Key Recommendations */}
+        <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 space-y-2">
+          <h3 className="text-sm font-bold text-primary">🎯 Key Recommendations Before Launch</h3>
+          <ul className="text-xs text-foreground/70 space-y-1">
+            <li>1. <strong>Migrate to persistent database</strong> with encryption at rest (Priority: CRITICAL)</li>
+            <li>2. <strong>Implement backend secret management</strong> using AWS Secrets Manager (Priority: CRITICAL)</li>
+            <li>3. <strong>Add comprehensive test coverage</strong> (unit + E2E) minimum 80% (Priority: CRITICAL)</li>
+            <li>4. <strong>Setup observability stack</strong> (Sentry, DataDog, or ELK) for production monitoring</li>
+            <li>5. <strong>Implement distributed state management</strong> (Redis) for multi-instance scaling</li>
+            <li>6. <strong>Add HMAC webhook signature verification</strong> and request size limits</li>
+            <li>7. <strong>Configure CORS, CSP, and security headers</strong> on all endpoints</li>
+            <li>8. <strong>Implement rate limiting and circuit breakers</strong> for resilience</li>
+            <li>9. <strong>Setup automated backups</strong> and disaster recovery procedures</li>
+            <li>10. <strong>Conduct security penetration test</strong> before public launch</li>
+          </ul>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 rounded-lg bg-secondary/30 border border-border/30 text-xs text-muted-foreground/70">
+          <p>This audit was performed on 2026-05-03. Recommendations are based on current codebase analysis and production best practices. Re-run after each major feature addition.</p>
         </div>
       </div>
     </div>
