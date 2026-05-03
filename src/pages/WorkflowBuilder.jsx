@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch } from "lucide-react";
+import { ArrowLeft, GitBranch, Library } from "lucide-react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
 import WorkflowToolbar from "../components/workflow/WorkflowToolbar";
 import NodeConfigPanel from "../components/workflow/NodeConfigPanel";
 import SimulationLog from "../components/workflow/SimulationLog";
 import TestModePanel from "../components/workflow/TestModePanel";
+import WorkflowTemplateLibrary from "../components/workflow/WorkflowTemplateLibrary";
 import { DEFAULT_WORKFLOWS } from "../components/workflow/workflowData";
 import { useSimulation } from "../hooks/useSimulation";
 
@@ -16,6 +17,7 @@ export default function WorkflowBuilder() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [workflowName, setWorkflowName] = useState(DEFAULT_WORKFLOWS[0].name);
   const [breakpoints, setBreakpoints] = useState(new Set());
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const nextId = useRef(100);
   const sim = useSimulation(nodes, edges);
 
@@ -79,6 +81,30 @@ export default function WorkflowBuilder() {
     setWorkflowName("New Workflow");
   };
 
+  const loadTemplate = (template) => {
+    const startX = 80;
+    const startY = 100;
+    const nodeSpacing = 200;
+
+    const newNodes = template.nodes.map((tpl, idx) => ({
+      id: `node-${nextId.current++}`,
+      type: tpl.type,
+      label: tpl.label,
+      x: startX + idx * nodeSpacing,
+      y: startY,
+      config: tpl.config || {},
+    }));
+
+    const newEdges = template.edges.map(({ from, to }) => ({
+      id: `edge-${newNodes[from].id}-${newNodes[to].id}`,
+      from: newNodes[from].id,
+      to: newNodes[to].id,
+    }));
+
+    setNodes((prev) => [...prev, ...newNodes]);
+    setEdges((prev) => [...prev, ...newEdges]);
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
@@ -97,6 +123,14 @@ export default function WorkflowBuilder() {
               className="text-sm font-semibold bg-transparent text-foreground focus:outline-none focus:border-b focus:border-primary/50 min-w-[160px]"
             />
           </div>
+          <button
+            onClick={() => setShowTemplateLibrary(!showTemplateLibrary)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border/40 text-foreground hover:bg-secondary transition-colors"
+            title="Open template library"
+          >
+            <Library className="w-3.5 h-3.5" />
+            Templates
+          </button>
         </div>
         <WorkflowToolbar
           nodes={nodes}
@@ -114,6 +148,11 @@ export default function WorkflowBuilder() {
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
+        <WorkflowTemplateLibrary
+          isOpen={showTemplateLibrary}
+          onClose={() => setShowTemplateLibrary(false)}
+          onLoadTemplate={loadTemplate}
+        />
         <WorkflowSidebar onAddNode={addNode} />
         <div className="flex-1 relative overflow-hidden">
           <WorkflowCanvas
