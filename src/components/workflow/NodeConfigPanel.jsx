@@ -4,6 +4,12 @@ import { NODE_TYPES } from "./workflowData";
 
 // Field definitions per node type
 const CONFIG_FIELDS = {
+  agent: [
+    { key: "agent_id", label: "Agent Type", type: "select", options: ["x402_data_analyst", "x402_api_integrator", "x402_content_creator", "x402_compliance_reviewer", "custom_langchain_agent", "custom_crewai_agent", "custom_local_agent"] },
+    { key: "agent_prompt", label: "Instructions/Prompt", type: "textarea", placeholder: "What should the agent do? Include specific guidelines and constraints." },
+    { key: "agent_timeout", label: "Timeout (seconds)", type: "number", placeholder: "30" },
+    { key: "agent_temperature", label: "Temperature (0–2)", type: "number", placeholder: "0.7" },
+  ],
   trigger: [
     { key: "voice_phrase", label: "Voice Trigger Phrase", type: "text", placeholder: 'e.g. "new order", "check status"' },
     { key: "fallback_phrase", label: "Fallback Phrase (optional)", type: "text", placeholder: 'e.g. "order created"' },

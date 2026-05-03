@@ -1,24 +1,39 @@
 import React from "react";
 import { NODE_TYPES } from "./workflowData";
 
-export default function WorkflowSidebar({ onAddNode }) {
+export default function WorkflowSidebar({ onAddNode, onOpenAgentSelector }) {
   return (
     <aside className="w-52 shrink-0 border-r border-border/50 bg-card/40 overflow-y-auto p-3 flex flex-col gap-2">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1 px-1">Node Types</p>
-      {Object.entries(NODE_TYPES).map(([type, def]) => (
-        <button
-          key={type}
-          onClick={() => onAddNode(type)}
-          draggable
-          className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs font-medium transition-all hover:scale-[1.02] active:scale-95 ${def.color}`}
-        >
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-base leading-none">{def.icon}</span>
-            <span className="font-semibold">{def.label}</span>
-          </div>
-          <p className="text-[10px] opacity-70 leading-relaxed">{def.description}</p>
-        </button>
-      ))}
+      <div className="flex items-center justify-between px-1 mb-1">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Node Types</p>
+      </div>
+      <button
+        onClick={onOpenAgentSelector}
+        className="w-full text-left px-3 py-2.5 rounded-xl border bg-purple-500/20 border-purple-500/50 text-purple-400 text-xs font-medium transition-all hover:scale-[1.02] active:scale-95"
+      >
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="text-base leading-none">🤖</span>
+          <span className="font-semibold">Custom Agent</span>
+        </div>
+        <p className="text-[10px] opacity-70 leading-relaxed">Add x402 or custom agents</p>
+      </button>
+
+      {Object.entries(NODE_TYPES)
+        .filter(([type]) => type !== "agent")
+        .map(([type, def]) => (
+          <button
+            key={type}
+            onClick={() => onAddNode(type)}
+            draggable
+            className={`w-full text-left px-3 py-2.5 rounded-xl border text-xs font-medium transition-all hover:scale-[1.02] active:scale-95 ${def.color}`}
+          >
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-base leading-none">{def.icon}</span>
+              <span className="font-semibold">{def.label}</span>
+            </div>
+            <p className="text-[10px] opacity-70 leading-relaxed">{def.description}</p>
+          </button>
+        ))}
 
       <div className="mt-4 border-t border-border/30 pt-3">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">Tips</p>

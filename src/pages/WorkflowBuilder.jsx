@@ -21,6 +21,7 @@ import PresenceIndicators from "../components/workflow/PresenceIndicators";
 import CollaborationSync from "../components/workflow/CollaborationSync";
 import { createVersionControl } from "../utils/versionControl";
 import VersionHistory from "../components/workflow/VersionHistory";
+import AgentSelector from "../components/workflow/AgentSelector";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -35,6 +36,7 @@ export default function WorkflowBuilder() {
   const [syncStatus, setSyncStatus] = useState("synced");
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [versions, setVersions] = useState([]);
+  const [showAgentSelector, setShowAgentSelector] = useState(false);
   const nextId = useRef(100);
   const versionControl = useRef(null);
   const sim = useSimulation(nodes, edges);
@@ -59,18 +61,22 @@ export default function WorkflowBuilder() {
     });
   }, []);
 
-  const addNode = useCallback((type) => {
+  const addNode = useCallback((type, agentData = null) => {
     const id = `node-${nextId.current++}`;
     const newNode = {
       id,
       type,
-      label: getDefaultLabel(type),
+      label: agentData ? agentData.name : getDefaultLabel(type),
       x: 200 + Math.random() * 200,
       y: 100 + Math.random() * 200,
-      config: {},
+      config: agentData ? { agent_id: agentData.id } : {},
     };
     setNodes((prev) => [...prev, newNode]);
   }, []);
+
+  const handleAgentSelect = (agent) => {
+    addNode("agent", agent);
+  };
 
   const updateNode = useCallback((id, updates) => {
     setNodes((prev) => prev.map((n) => (n.id === id ? { ...n, ...updates } : n)));
@@ -253,7 +259,7 @@ export default function WorkflowBuilder() {
           onDeleteTemplate={templates.deleteTemplate}
           onDragStart={handleDragTemplate}
         />
-        <WorkflowSidebar onAddNode={addNode} />
+        <WorkflowSidebar onAddNode={addNode} onOpenAgentSelector={() => setShowAgentSelector(true)} />
         <SaveTemplateModal
           isOpen={showSaveModal}
           onClose={() => setShowSaveModal(false)}
@@ -325,6 +331,11 @@ export default function WorkflowBuilder() {
         onDelete={handleDeleteVersion}
         onUpdateLabel={handleUpdateLabel}
         onSaveVersion={handleSaveVersion}
+      />
+      <AgentSelector
+        isOpen={showAgentSelector}
+        onClose={() => setShowAgentSelector(false)}
+        onSelect={handleAgentSelect}
       />
     </div>
   );

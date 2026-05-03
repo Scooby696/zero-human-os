@@ -1,4 +1,11 @@
 export const NODE_TYPES = {
+  agent: {
+    label: "Custom Agent",
+    color: "bg-purple-500/20 border-purple-500/50 text-purple-400",
+    dot: "bg-purple-400",
+    icon: "🤖",
+    description: "Execute custom or x402 paid agent",
+  },
   trigger: {
     label: "Trigger",
     color: "bg-green-500/20 border-green-500/50 text-green-400",

@@ -261,6 +261,22 @@ function processNode(node, ctx, variables = {}) {
       };
     }
 
+    case "agent": {
+      const agentId = node.config?.agent_id || "custom_agent";
+      const prompt = node.config?.agent_prompt || "Execute task";
+      return {
+        agent_id: agentId,
+        agent_prompt: prompt,
+        agent_timeout: node.config?.agent_timeout || 30,
+        agent_temperature: node.config?.agent_temperature || 0.7,
+        execution_result: {
+          status: "completed",
+          output: `Agent (${agentId}) executed successfully`,
+          tokens_used: Math.floor(Math.random() * 500) + 100,
+        },
+      };
+    }
+
     case "end":
       return {
         status: "completed",
@@ -294,7 +310,7 @@ function generateLLMOutput(node, ctx) {
 }
 
 function getStepDuration(type) {
-  const map = { trigger: 700, condition: 900, llm: 1300, action: 1000, response: 800, end: 500 };
+  const map = { trigger: 700, condition: 900, llm: 1300, action: 1000, response: 800, agent: 1500, end: 500 };
   return map[type] || 750;
 }
 
@@ -308,6 +324,7 @@ function getNodeLog(node) {
     variable: `📝 Variable: "${node.label}"`,
     webhook_trigger: `🔗 Webhook received: "${node.label}"${node.config?.webhook_url ? ` from ${node.config.webhook_url}` : ""}`,
     webhook_action: `📤 Webhook sent: "${node.label}"${node.config?.target_url ? ` to ${node.config.target_url}` : ""}`,
+    agent: `🤖 Agent: "${node.label}"${node.config?.agent_id ? ` [${node.config.agent_id}]` : ""}`,
     end: `⏹ End: "${node.label}"`,
   };
   return labels[node.type] || `▶ Processing "${node.label}"`;
@@ -317,7 +334,7 @@ function getLogType(type) {
   const map = {
     trigger: "trigger", llm: "llm", action: "action",
     condition: "condition", response: "response", variable: "info",
-    webhook_trigger: "action", webhook_action: "action", end: "success",
+    webhook_trigger: "action", webhook_action: "action", agent: "action", end: "success",
   };
   return map[type] || "info";
 }
