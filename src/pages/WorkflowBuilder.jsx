@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard } from "lucide-react";
+import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap } from "lucide-react";
 import { useEffect } from "react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
@@ -24,6 +24,8 @@ import VersionHistory from "../components/workflow/VersionHistory";
 import AgentSelector from "../components/workflow/AgentSelector";
 import WalletManagement from "../components/workflow/WalletManagement";
 import TemplateLibraryModal from "../components/workflow/TemplateLibraryModal";
+import WebhookDebugger from "../components/workflow/WebhookDebugger";
+import { webhookLogger } from "../utils/webhookLogger";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -40,6 +42,7 @@ export default function WorkflowBuilder() {
   const [versions, setVersions] = useState([]);
   const [showAgentSelector, setShowAgentSelector] = useState(false);
   const [showWalletManagement, setShowWalletManagement] = useState(false);
+  const [showWebhookDebugger, setShowWebhookDebugger] = useState(false);
   const nextId = useRef(100);
   const versionControl = useRef(null);
   const sim = useSimulation(nodes, edges);
@@ -232,6 +235,14 @@ export default function WorkflowBuilder() {
             Templates
           </button>
           <button
+            onClick={() => setShowWebhookDebugger(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 hover:bg-cyan-400/20 transition-colors"
+            title="Debug webhook payloads"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            Webhooks
+          </button>
+          <button
             onClick={() => setShowWalletManagement(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors"
             title="Manage wallets for paid agents"
@@ -353,6 +364,11 @@ export default function WorkflowBuilder() {
         isOpen={showTemplateLibrary}
         onClose={() => setShowTemplateLibrary(false)}
         onImport={handleImportTemplate}
+      />
+      <WebhookDebugger
+        isOpen={showWebhookDebugger}
+        onClose={() => setShowWebhookDebugger(false)}
+        nodes={nodes}
       />
     </div>
   );
