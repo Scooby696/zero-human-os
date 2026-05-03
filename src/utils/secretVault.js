@@ -1,187 +1,100 @@
-// Secret Vault with client-side encryption simulation
-// In production, use TweetNaCl.js or libsodium.js for real encryption
+import { base44 } from "@/api/base44Client";
+
+/**
+ * Frontend secret vault interface
+ * - Communicates with backend secret management
+ * - Never stores actual secret values
+ * - Manages metadata and UI state only
+ */
 
 export function createSecretVault() {
-  let secrets = [];
-  let encryptionKey = null;
-
-  const generateKey = () => {
-    // Simulate key generation - in production use crypto.getRandomValues()
-    return `key_${Math.random().toString(36).slice(2, 15)}${Math.random().toString(36).slice(2, 15)}`;
-  };
-
-  const encryptSecret = (value) => {
-    // Simulate encryption - in production use actual encryption
-    if (!encryptionKey) encryptionKey = generateKey();
-    const encrypted = btoa(value); // Browser native base64 encoding
-    return {
-      encrypted,
-      keyId: encryptionKey,
-      algorithm: 'AES-256-GCM',
-    };
-  };
-
-  const decryptSecret = (encryptedData) => {
-    // Simulate decryption
+  const callSecretAPI = async (action, data = {}) => {
     try {
-      return atob(encryptedData.encrypted); // Browser native base64 decoding
-    } catch (e) {
-      return null;
+      const response = await base44.functions.invoke("manageSecrets", {
+        action,
+        ...data,
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Secret operation failed (${action}):`, error);
+      throw error;
     }
   };
 
-  const createSecret = (config) => {
-    const secret = {
-      id: `secret_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      name: config.name,
-      type: config.type, // api_key, env_var, token, password
-      description: config.description || '',
-      value: encryptSecret(config.value),
-      tags: config.tags || [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      rotatedAt: new Date().toISOString(),
-      rotationPolicy: config.rotationPolicy || {
-        enabled: false,
-        interval: 90, // days
-        lastRotated: new Date().toISOString(),
-      },
-      accessLog: [
-        {
-          timestamp: new Date().toISOString(),
-          action: 'created',
-          user: 'system',
-        },
-      ],
-      metadata: {
-        provider: config.provider || null, // aws, gcp, stripe, etc.
-        environment: config.environment || 'all',
-      },
-    };
-    secrets.push(secret);
-    return secret;
-  };
-
-  const getSecret = (secretId) => {
-    const secret = secrets.find((s) => s.id === secretId);
-    if (!secret) return null;
-    return {
-      ...secret,
-      value: decryptSecret(secret.value),
-    };
-  };
-
-  const getSecrets = (filters = {}) => {
-    let results = secrets;
-    if (filters.type) results = results.filter((s) => s.type === filters.type);
-    if (filters.tags) results = results.filter((s) => filters.tags.some((tag) => s.tags.includes(tag)));
-    if (filters.provider) results = results.filter((s) => s.metadata.provider === filters.provider);
-
-    return results.map((s) => ({
-      ...s,
-      value: '••••••••', // Never return decrypted value in list
-    }));
-  };
-
-  const updateSecret = (secretId, updates) => {
-    const secret = secrets.find((s) => s.id === secretId);
-    if (!secret) return null;
-
-    const encrypted = updates.value ? encryptSecret(updates.value) : secret.value;
-
-    secret.name = updates.name || secret.name;
-    secret.description = updates.description || secret.description;
-    secret.value = encrypted;
-    secret.updatedAt = new Date().toISOString();
-    secret.accessLog.push({
-      timestamp: new Date().toISOString(),
-      action: 'updated',
-      user: 'system',
-    });
-
-    return secret;
-  };
-
-  const rotateSecret = (secretId, newValue) => {
-    const secret = secrets.find((s) => s.id === secretId);
-    if (!secret) return null;
-
-    secret.value = encryptSecret(newValue);
-    secret.rotatedAt = new Date().toISOString();
-    secret.rotationPolicy.lastRotated = new Date().toISOString();
-    secret.accessLog.push({
-      timestamp: new Date().toISOString(),
-      action: 'rotated',
-      user: 'system',
-    });
-
-    return secret;
-  };
-
-  const deleteSecret = (secretId) => {
-    const index = secrets.findIndex((s) => s.id === secretId);
-    if (index > -1) {
-      const deleted = secrets.splice(index, 1);
-      return deleted[0];
+  const createSecret = async (name, value, description = "", rotationInterval = 0) => {
+    if (!name || !value) {
+      throw new Error("Secret name and value are required");
     }
-    return null;
+
+    if (name.length < 3 || name.length > 50) {
+      throw new Error("Secret name must be 3-50 characters");
+    }
+
+    const result = await callSecretAPI("create", {
+      name,
+      value,
+      description,
+      rotationInterval,
+    });
+
+    return result.secret;
   };
 
-  const getAccessLog = (secretId) => {
-    const secret = secrets.find((s) => s.id === secretId);
-    return secret ? secret.accessLog : [];
+  const listSecrets = async () => {
+    const result = await callSecretAPI("list");
+    return result.secrets || [];
+  };
+
+  const getSecret = async (secretId) => {
+    const result = await callSecretAPI("read", { secretId });
+    // Frontend never persists this value
+    return result.value;
+  };
+
+  const updateSecret = async (secretId, updates) => {
+    const result = await callSecretAPI("update", {
+      secretId,
+      ...updates,
+    });
+    return result.secret;
+  };
+
+  const deleteSecret = async (secretId) => {
+    const result = await callSecretAPI("delete", { secretId });
+    return result.success;
+  };
+
+  const rotateSecret = async (secretId) => {
+    const result = await callSecretAPI("rotate", { secretId });
+    return result.secret;
+  };
+
+  const resolveSecret = async (secretId) => {
+    // Backend-only resolution for workflow execution
+    const result = await callSecretAPI("resolve", { secretId });
+    return result.value;
   };
 
   const generateSecretReference = (secretId) => {
-    // Generate reference syntax for use in nodes: {{secret:secret_id}}
-    return `{{secret:${secretId}}}`;
+    // Return a reference string that workflow backend will resolve
+    return `{{SECRET:${secretId}}}`;
   };
 
-  const resolveSecrets = (text) => {
-    // Replace secret references with actual values
-    const secretRegex = /\{\{secret:([^}]+)\}\}/g;
-    let resolved = text;
-    const matches = text.matchAll(secretRegex);
-
-    for (const match of matches) {
-      const secretId = match[1];
-      const secret = getSecret(secretId);
-      if (secret) {
-        resolved = resolved.replace(match[0], secret.value);
-      }
-    }
-
-    return resolved;
-  };
-
-  const validateSecretPolicy = (secret) => {
-    const issues = [];
-    if (!secret.name || secret.name.length < 3) {
-      issues.push('Secret name must be at least 3 characters');
-    }
-    if (!secret.value || secret.value.length < 8) {
-      issues.push('Secret value must be at least 8 characters');
-    }
-    if (secret.rotationPolicy.enabled && secret.rotationPolicy.interval < 7) {
-      issues.push('Rotation interval must be at least 7 days');
-    }
-    return {
-      valid: issues.length === 0,
-      issues,
-    };
+  const validateSecretReference = (text) => {
+    const regex = /\{\{SECRET:[a-f0-9-]+\}\}/g;
+    return text.match(regex) || [];
   };
 
   return {
     createSecret,
+    listSecrets,
     getSecret,
-    getSecrets,
     updateSecret,
-    rotateSecret,
     deleteSecret,
-    getAccessLog,
+    rotateSecret,
+    resolveSecret,
     generateSecretReference,
-    resolveSecrets,
-    validateSecretPolicy,
+    validateSecretReference,
   };
 }
 
