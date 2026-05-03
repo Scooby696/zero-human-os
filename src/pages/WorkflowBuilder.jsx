@@ -146,6 +146,8 @@ export default function WorkflowBuilder() {
             nodeData={sim.nodeData}
             simState={sim.simState}
             onClose={sim.reset}
+            log={sim.log}
+            workflowName={workflowName}
           />
         )}
         {selectedNode && sim.simState === "idle" && (

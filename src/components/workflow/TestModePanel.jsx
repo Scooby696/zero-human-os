@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { X, ChevronDown, ChevronRight, ArrowRight, Database } from "lucide-react";
+import { X, ChevronDown, ChevronRight, ArrowRight, Database, Download, FileJson } from "lucide-react";
 import { NODE_TYPES } from "./workflowData";
+import { exportAsJSON, exportAsPDF } from "../../utils/exportWorkflowLog";
 
 function JsonTree({ data, depth = 0 }) {
   const [collapsed, setCollapsed] = useState(depth > 1);
@@ -82,8 +83,16 @@ function NodeDataCard({ node, data }) {
   );
 }
 
-export default function TestModePanel({ nodes, nodeData, simState, onClose }) {
+export default function TestModePanel({ nodes, nodeData, simState, onClose, log, workflowName }) {
   const executedNodes = nodes.filter((n) => nodeData[n.id]);
+
+  const handleExportJSON = () => {
+    exportAsJSON(workflowName || "Workflow", nodes, log || [], nodeData);
+  };
+
+  const handleExportPDF = () => {
+    exportAsPDF(workflowName || "Workflow", nodes, log || [], nodeData);
+  };
 
   return (
     <div className="w-80 shrink-0 border-l border-border/50 bg-card/50 backdrop-blur-xl flex flex-col overflow-hidden">
@@ -126,12 +135,28 @@ export default function TestModePanel({ nodes, nodeData, simState, onClose }) {
         ))}
       </div>
 
-      {/* Footer summary */}
+      {/* Footer with export buttons */}
       {simState === "done" && executedNodes.length > 0 && (
-        <div className="px-4 py-3 border-t border-border/40 bg-secondary/10 shrink-0">
+        <div className="px-4 py-3 border-t border-border/40 bg-secondary/10 shrink-0 space-y-3">
           <p className="text-[10px] text-muted-foreground text-center">
-            {executedNodes.length} nodes executed · click input/output tabs to inspect
+            {executedNodes.length} nodes executed
           </p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleExportJSON}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-medium hover:bg-primary/20 transition-colors"
+            >
+              <FileJson className="w-3 h-3" />
+              Export JSON
+            </button>
+            <button
+              onClick={handleExportPDF}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-amber-400/10 border border-amber-400/20 text-amber-400 text-xs font-medium hover:bg-amber-400/20 transition-colors"
+            >
+              <Download className="w-3 h-3" />
+              Export PDF
+            </button>
+          </div>
         </div>
       )}
     </div>
