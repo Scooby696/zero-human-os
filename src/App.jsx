@@ -23,6 +23,7 @@ import WebhookDebuggerPage from './pages/WebhookDebuggerPage';
 import CostOptimization from './pages/CostOptimization';
 import DeploymentAudit from './pages/DeploymentAudit';
 import FunctionalityAudit from './pages/FunctionalityAudit';
+import SecurityAudit from './pages/SecurityAudit';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
         <Route path="/cost-optimization" element={<CostOptimization />} />
         <Route path="/audit/deployment" element={<DeploymentAudit />} />
         <Route path="/audit/functionality" element={<FunctionalityAudit />} />
+        <Route path="/audit/security" element={<SecurityAudit />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <ZHSVoiceButton />
