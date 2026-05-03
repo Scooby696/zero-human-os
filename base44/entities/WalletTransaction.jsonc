@@ -1,0 +1,68 @@
+{
+  "name": "WalletTransaction",
+  "type": "object",
+  "properties": {
+    "walletId": {
+      "type": "string",
+      "description": "Associated wallet ID"
+    },
+    "transactionHash": {
+      "type": "string",
+      "description": "Circle transaction ID"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "transfer",
+        "deposit",
+        "withdrawal"
+      ],
+      "description": "Transaction type"
+    },
+    "token": {
+      "type": "string",
+      "description": "Token symbol (USDC, EURC, etc)"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount"
+    },
+    "fromAddress": {
+      "type": "string",
+      "description": "Source address"
+    },
+    "toAddress": {
+      "type": "string",
+      "description": "Destination address"
+    },
+    "network": {
+      "type": "string",
+      "description": "Blockchain network (polygon, ethereum, etc)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Transaction status"
+    },
+    "fee": {
+      "type": "number",
+      "description": "Transaction fee in USD"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "JSON with additional transaction details"
+    }
+  },
+  "required": [
+    "walletId",
+    "token",
+    "amount",
+    "toAddress",
+    "network"
+  ]
+}

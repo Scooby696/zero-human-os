@@ -1,0 +1,47 @@
+{
+  "name": "Wallet",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "User email for wallet login"
+    },
+    "userId": {
+      "type": "string",
+      "description": "Associated user ID"
+    },
+    "circleWalletId": {
+      "type": "string",
+      "description": "Circle WaaS wallet ID"
+    },
+    "walletAddress": {
+      "type": "string",
+      "description": "Blockchain wallet address"
+    },
+    "walletType": {
+      "type": "string",
+      "enum": [
+        "email",
+        "keyed"
+      ],
+      "description": "Wallet type (email-based or key-based)"
+    },
+    "balances": {
+      "type": "string",
+      "description": "JSON object with token balances {USDC: 100, EURC: 50, etc}"
+    },
+    "supportedNetworks": {
+      "type": "string",
+      "description": "JSON array of supported networks [polygon, ethereum, etc]"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether wallet is active"
+    }
+  },
+  "required": [
+    "email",
+    "circleWalletId"
+  ]
+}
