@@ -1,6 +1,7 @@
 import React from "react";
 import { X, Settings } from "lucide-react";
 import { NODE_TYPES } from "./workflowData";
+import SecretSelector from "../vault/SecretSelector";
 
 // Field definitions per node type
 const CONFIG_FIELDS = {
@@ -29,7 +30,7 @@ const CONFIG_FIELDS = {
     { key: "endpoint_url", label: "API Endpoint URL", type: "text", placeholder: "https://api.example.com/endpoint" },
     { key: "http_method", label: "HTTP Method", type: "select", options: ["GET", "POST", "PUT", "PATCH", "DELETE"] },
     { key: "request_body", label: "Request Body (JSON)", type: "textarea", placeholder: '{"key": "value"}' },
-    { key: "auth_header", label: "Authorization Header", type: "text", placeholder: "Bearer YOUR_TOKEN" },
+    { key: "auth_header", label: "Authorization Header (or select secret)", type: "secret", placeholder: "Bearer token" },
     { key: "timeout_ms", label: "Timeout (ms)", type: "number", placeholder: "5000" },
   ],
   response: [
@@ -65,6 +66,16 @@ const CONFIG_FIELDS = {
 function Field({ field, value, onChange }) {
   const baseClass =
     "w-full bg-background border border-border/50 rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 transition-colors";
+
+  if (field.type === "secret") {
+    return (
+      <SecretSelector
+        value={value}
+        onChange={onChange}
+        label={field.label}
+      />
+    );
+  }
 
   if (field.type === "textarea") {
     return (

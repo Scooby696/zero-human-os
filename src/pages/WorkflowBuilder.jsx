@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap, TrendingUp } from "lucide-react";
+import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap, TrendingUp, Lock } from "lucide-react";
 import { useEffect } from "react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
@@ -28,6 +28,7 @@ import WebhookDebugger from "../components/workflow/WebhookDebugger";
 import { webhookLogger } from "../utils/webhookLogger";
 import AdvancedScheduler from "../components/workflow/AdvancedScheduler";
 import ExecutionAnalyticsPanel from "../components/workflow/ExecutionAnalyticsPanel";
+import SecretVaultModal from "../components/vault/SecretVaultModal";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -47,6 +48,7 @@ export default function WorkflowBuilder() {
   const [showWebhookDebugger, setShowWebhookDebugger] = useState(false);
   const [showScheduler, setShowScheduler] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showSecretVault, setShowSecretVault] = useState(false);
   const [scheduleConfig, setScheduleConfig] = useState(null);
   const nextId = useRef(100);
   const versionControl = useRef(null);
@@ -272,6 +274,14 @@ export default function WorkflowBuilder() {
             Wallets
           </button>
           <button
+            onClick={() => setShowSecretVault(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-400/10 border border-green-400/20 text-green-400 hover:bg-green-400/20 transition-colors"
+            title="Manage encrypted secrets and API keys"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            Secret Vault
+          </button>
+          <button
             onClick={() => setShowSaveModal(true)}
             disabled={nodes.length === 0}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -402,6 +412,10 @@ export default function WorkflowBuilder() {
       <ExecutionAnalyticsPanel
         isOpen={showAnalytics}
         onClose={() => setShowAnalytics(false)}
+      />
+      <SecretVaultModal
+        isOpen={showSecretVault}
+        onClose={() => setShowSecretVault(false)}
       />
     </div>
   );
