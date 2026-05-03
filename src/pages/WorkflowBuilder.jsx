@@ -1,15 +1,17 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch, Library } from "lucide-react";
+import { ArrowLeft, GitBranch, Library, Save } from "lucide-react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
 import WorkflowToolbar from "../components/workflow/WorkflowToolbar";
 import NodeConfigPanel from "../components/workflow/NodeConfigPanel";
 import SimulationLog from "../components/workflow/SimulationLog";
 import TestModePanel from "../components/workflow/TestModePanel";
-import WorkflowTemplateLibrary from "../components/workflow/WorkflowTemplateLibrary";
+import WorkflowTemplateLibraryV2 from "../components/workflow/WorkflowTemplateLibraryV2";
+import SaveTemplateModal from "../components/workflow/SaveTemplateModal";
 import { DEFAULT_WORKFLOWS } from "../components/workflow/workflowData";
 import { useSimulation } from "../hooks/useSimulation";
+import { useTemplateManager } from "../hooks/useTemplateManager";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -18,8 +20,10 @@ export default function WorkflowBuilder() {
   const [workflowName, setWorkflowName] = useState(DEFAULT_WORKFLOWS[0].name);
   const [breakpoints, setBreakpoints] = useState(new Set());
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const nextId = useRef(100);
   const sim = useSimulation(nodes, edges);
+  const templates = useTemplateManager();
 
   const toggleBreakpoint = useCallback((nodeId) => {
     setBreakpoints((prev) => {
@@ -105,6 +109,15 @@ export default function WorkflowBuilder() {
     setEdges((prev) => [...prev, ...newEdges]);
   };
 
+  const handleSaveTemplate = (name, description) => {
+    templates.saveTemplate(name, description, nodes, edges);
+  };
+
+  const handleDragTemplate = (e, template) => {
+    e.dataTransfer.effectAllowed = "copy";
+    e.dataTransfer.setData("template", JSON.stringify(template));
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
@@ -131,6 +144,15 @@ export default function WorkflowBuilder() {
             <Library className="w-3.5 h-3.5" />
             Templates
           </button>
+          <button
+            onClick={() => setShowSaveModal(true)}
+            disabled={nodes.length === 0}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Save current workflow as template"
+          >
+            <Save className="w-3.5 h-3.5" />
+            Save Template
+          </button>
         </div>
         <WorkflowToolbar
           nodes={nodes}
@@ -148,12 +170,21 @@ export default function WorkflowBuilder() {
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        <WorkflowTemplateLibrary
+        <WorkflowTemplateLibraryV2
           isOpen={showTemplateLibrary}
           onClose={() => setShowTemplateLibrary(false)}
           onLoadTemplate={loadTemplate}
+          customTemplates={templates.customTemplates}
+          onDeleteTemplate={templates.deleteTemplate}
+          onDragStart={handleDragTemplate}
         />
         <WorkflowSidebar onAddNode={addNode} />
+        <SaveTemplateModal
+          isOpen={showSaveModal}
+          onClose={() => setShowSaveModal(false)}
+          onSave={handleSaveTemplate}
+          selectedNodeCount={nodes.length}
+        />
         <div className="flex-1 relative overflow-hidden">
           <WorkflowCanvas
             nodes={nodes}
