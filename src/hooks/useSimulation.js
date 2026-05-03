@@ -184,6 +184,34 @@ function processNode(node, ctx, variables = {}) {
         description: node.config?.variable_description || "",
       };
     }
+
+    case "webhook_trigger": {
+      const url = node.config?.webhook_url || "https://webhook.site/demo";
+      return {
+        webhook_url: url,
+        received_data: {
+          user_id: "usr_" + Math.random().toString(36).slice(2, 8),
+          action: "workflow_started",
+          timestamp: new Date().toISOString(),
+        },
+        status_code: 200,
+      };
+    }
+
+    case "webhook_action": {
+      const url = node.config?.target_url || "https://api.example.com/callback";
+      const method = node.config?.http_method || "POST";
+      const payloadTemplate = node.config?.payload_template || '{"status": "completed"}';
+      const payload = JSON.parse(payloadTemplate.replace(/\{\{(\w+)\}\}/g, (_, k) => JSON.stringify(ctx[k] || "")));
+      return {
+        target_url: url,
+        http_method: method,
+        payload_sent: payload,
+        status_code: 200,
+        latency_ms: Math.floor(Math.random() * 400) + 100,
+      };
+    }
+
     case "trigger":
       return generateTriggerPayload(node);
 
@@ -278,6 +306,8 @@ function getNodeLog(node) {
     action: `🔧 Action: "${node.label}"${node.config?.endpoint_url ? ` → ${node.config.endpoint_url}` : ""}`,
     response: `💬 Response: "${node.label}"`,
     variable: `📝 Variable: "${node.label}"`,
+    webhook_trigger: `🔗 Webhook received: "${node.label}"${node.config?.webhook_url ? ` from ${node.config.webhook_url}` : ""}`,
+    webhook_action: `📤 Webhook sent: "${node.label}"${node.config?.target_url ? ` to ${node.config.target_url}` : ""}`,
     end: `⏹ End: "${node.label}"`,
   };
   return labels[node.type] || `▶ Processing "${node.label}"`;
@@ -286,7 +316,8 @@ function getNodeLog(node) {
 function getLogType(type) {
   const map = {
     trigger: "trigger", llm: "llm", action: "action",
-    condition: "condition", response: "response", variable: "info", end: "success",
+    condition: "condition", response: "response", variable: "info",
+    webhook_trigger: "action", webhook_action: "action", end: "success",
   };
   return map[type] || "info";
 }

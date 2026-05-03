@@ -41,6 +41,20 @@ export const NODE_TYPES = {
     icon: "📝",
     description: "Store data in a variable for later use",
   },
+  webhook_trigger: {
+    label: "Webhook Trigger",
+    color: "bg-teal-500/20 border-teal-500/50 text-teal-400",
+    dot: "bg-teal-400",
+    icon: "🔗",
+    description: "Receive real-time data from external webhooks",
+  },
+  webhook_action: {
+    label: "Webhook Action",
+    color: "bg-indigo-500/20 border-indigo-500/50 text-indigo-400",
+    dot: "bg-indigo-400",
+    icon: "📤",
+    description: "Send workflow results to external endpoints",
+  },
   end: {
     label: "End",
     color: "bg-red-500/20 border-red-500/50 text-red-400",

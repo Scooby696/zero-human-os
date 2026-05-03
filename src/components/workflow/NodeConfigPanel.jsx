@@ -38,6 +38,18 @@ const CONFIG_FIELDS = {
     { key: "output_schema", label: "Expected Output Schema (JSON)", type: "textarea", placeholder: '{"order_id": "string", "quantity": "number"}' },
     { key: "max_tokens", label: "Max Tokens", type: "number", placeholder: "512" },
   ],
+  webhook_trigger: [
+    { key: "webhook_url", label: "Webhook URL", type: "text", placeholder: "https://your-service.com/webhook" },
+    { key: "expected_fields", label: "Expected Fields (JSON)", type: "textarea", placeholder: '{"user_id": "string", "action": "string"}' },
+    { key: "timeout_ms", label: "Timeout (ms)", type: "number", placeholder: "10000" },
+  ],
+  webhook_action: [
+    { key: "target_url", label: "Target Endpoint URL", type: "text", placeholder: "https://api.example.com/callback" },
+    { key: "http_method", label: "HTTP Method", type: "select", options: ["GET", "POST", "PUT", "PATCH"] },
+    { key: "payload_template", label: "Payload (JSON with {{variables}})", type: "textarea", placeholder: '{"status": "completed", "result": {{result}}}' },
+    { key: "headers", label: "Custom Headers (JSON)", type: "textarea", placeholder: '{"Authorization": "Bearer TOKEN", "Content-Type": "application/json"}' },
+    { key: "timeout_ms", label: "Timeout (ms)", type: "number", placeholder: "5000" },
+  ],
   end: [
     { key: "summary_message", label: "Completion Message (optional)", type: "text", placeholder: "Flow completed successfully." },
     { key: "log_result", label: "Log Result", type: "select", options: ["yes", "no"] },
