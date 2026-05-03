@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/* global describe, beforeEach, it, expect */
 import { createWebhookTriggerManager } from '@/utils/webhookTrigger';
 
 describe('Webhook Validation', () => {

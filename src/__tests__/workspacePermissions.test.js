@@ -1,4 +1,5 @@
 /* eslint-env jest */
+/* global describe, beforeEach, it, expect */
 import { createWorkspaceManager } from '@/utils/workspaceManager';
 
 describe('Workspace Permissions', () => {

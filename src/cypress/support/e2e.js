@@ -1,3 +1,5 @@
+/* eslint-env cypress */
+/* global Cypress, cy */
 // Cypress support file for E2E tests
 
 beforeEach(() => {

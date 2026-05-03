@@ -1,4 +1,4 @@
-/* eslint-env jest, cypress */
+/* eslint-env cypress */
 /* global cy, describe, beforeEach, it */
 
 describe('Workflow Builder E2E Tests', () => {
