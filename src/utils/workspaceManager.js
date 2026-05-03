@@ -1,175 +1,267 @@
-export function createWorkspaceManager() {
-  let workspaces = [];
-  let currentWorkspaceId = null;
-  let teamMembers = {};
+import { base44 } from "@/api/base44Client";
 
+export function createWorkspaceManager() {
   const ROLES = {
     viewer: { label: "Viewer", permissions: ["read"] },
     editor: { label: "Editor", permissions: ["read", "write", "edit"] },
     admin: { label: "Admin", permissions: ["read", "write", "edit", "delete", "invite", "manage_roles"] },
   };
 
-  const createWorkspace = (name, ownerId) => {
-    const workspace = {
-      id: `ws_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      name,
-      ownerId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      members: [{ userId: ownerId, role: "admin" }],
-      workflows: [],
-    };
-    workspaces.push(workspace);
-    if (!currentWorkspaceId) currentWorkspaceId = workspace.id;
-    return workspace;
-  };
+  const createWorkspace = async (name, ownerId, description = "") => {
+    try {
+      const workspace = await base44.entities.Workspace.create({
+        name,
+        ownerId,
+        description,
+        isActive: true,
+      });
 
-  const getWorkspace = (workspaceId) => {
-    return workspaces.find((w) => w.id === workspaceId);
-  };
+      // Add owner as admin member
+      await base44.entities.WorkspaceTeamMember.create({
+        workspaceId: workspace.id,
+        userId: ownerId,
+        email: "", // Will be populated from User entity
+        role: "admin",
+      });
 
-  const getWorkspaces = (userId) => {
-    return workspaces.filter((w) => w.members.some((m) => m.userId === userId));
-  };
-
-  const getCurrentWorkspace = () => {
-    return getWorkspace(currentWorkspaceId);
-  };
-
-  const setCurrentWorkspace = (workspaceId) => {
-    if (getWorkspace(workspaceId)) {
-      currentWorkspaceId = workspaceId;
-      return true;
+      return workspace;
+    } catch (error) {
+      console.error("Error creating workspace:", error);
+      throw error;
     }
-    return false;
   };
 
-  const inviteUser = (workspaceId, email, role, invitedBy) => {
-    const workspace = getWorkspace(workspaceId);
-    if (!workspace) return { error: "Workspace not found" };
-
-    const inviter = workspace.members.find((m) => m.userId === invitedBy);
-    if (!inviter || !ROLES[inviter.role]?.permissions.includes("invite")) {
-      return { error: "You don't have permission to invite members" };
+  const getWorkspace = async (workspaceId) => {
+    try {
+      return await base44.entities.Workspace.get(workspaceId);
+    } catch (error) {
+      console.error("Error getting workspace:", error);
+      return null;
     }
-
-    if (!ROLES[role]) {
-      return { error: "Invalid role" };
-    }
-
-    const existingMember = workspace.members.find((m) => m.email === email);
-    if (existingMember) {
-      return { error: "User already a member" };
-    }
-
-    const invite = {
-      id: `inv_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      workspaceId,
-      email,
-      role,
-      status: "pending",
-      invitedBy,
-      invitedAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-    };
-
-    if (!teamMembers[workspaceId]) {
-      teamMembers[workspaceId] = { members: [], invites: [] };
-    }
-
-    teamMembers[workspaceId].invites.push(invite);
-    workspace.updatedAt = new Date().toISOString();
-
-    return { success: true, invite };
   };
 
-  const acceptInvite = (inviteId, userId, email) => {
-    for (const ws of Object.values(teamMembers)) {
-      const invite = ws.invites.find((i) => i.id === inviteId);
-      if (invite) {
-        if (invite.email !== email) {
-          return { error: "Email mismatch" };
-        }
-        if (new Date(invite.expiresAt) < new Date()) {
-          return { error: "Invite expired" };
-        }
+  const getWorkspaces = async (userId) => {
+    try {
+      const members = await base44.entities.WorkspaceTeamMember.filter({
+        userId,
+      });
+      const workspaceIds = members.map((m) => m.workspaceId);
+      const workspaces = await Promise.all(
+        workspaceIds.map((id) => base44.entities.Workspace.get(id))
+      );
+      return workspaces.filter(Boolean);
+    } catch (error) {
+      console.error("Error getting workspaces:", error);
+      return [];
+    }
+  };
 
-        const workspace = getWorkspace(invite.workspaceId);
-        workspace.members.push({ userId, email, role: invite.role });
-        ws.invites = ws.invites.filter((i) => i.id !== inviteId);
-        workspace.updatedAt = new Date().toISOString();
+  const inviteUser = async (workspaceId, email, role, invitedBy) => {
+    try {
+      const workspace = await getWorkspace(workspaceId);
+      if (!workspace) return { error: "Workspace not found" };
 
-        return { success: true, workspace };
+      const inviter = await base44.entities.WorkspaceTeamMember.filter({
+        workspaceId,
+        userId: invitedBy,
+      });
+
+      if (
+        !inviter[0] ||
+        !ROLES[inviter[0].role]?.permissions.includes("invite")
+      ) {
+        return { error: "You don't have permission to invite members" };
       }
+
+      if (!ROLES[role]) {
+        return { error: "Invalid role" };
+      }
+
+      const existingMember = await base44.entities.WorkspaceTeamMember.filter({
+        workspaceId,
+        email,
+      });
+
+      if (existingMember.length > 0) {
+        return { error: "User already a member" };
+      }
+
+      const invite = await base44.entities.WorkspaceInvite.create({
+        workspaceId,
+        email,
+        role,
+        status: "pending",
+        invitedBy,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      });
+
+      return { success: true, invite };
+    } catch (error) {
+      console.error("Error inviting user:", error);
+      return { error: error.message };
     }
-    return { error: "Invite not found" };
   };
 
-  const updateMemberRole = (workspaceId, userId, newRole, updatedBy) => {
-    const workspace = getWorkspace(workspaceId);
-    if (!workspace) return { error: "Workspace not found" };
+  const acceptInvite = async (inviteId, userId, email) => {
+    try {
+      const invite = await base44.entities.WorkspaceInvite.get(inviteId);
 
-    const updater = workspace.members.find((m) => m.userId === updatedBy);
-    if (!updater || !ROLES[updater.role]?.permissions.includes("manage_roles")) {
-      return { error: "You don't have permission to manage roles" };
+      if (!invite) {
+        return { error: "Invite not found" };
+      }
+
+      if (invite.email !== email) {
+        return { error: "Email mismatch" };
+      }
+
+      if (new Date(invite.expiresAt) < new Date()) {
+        return { error: "Invite expired" };
+      }
+
+      // Add member
+      await base44.entities.WorkspaceTeamMember.create({
+        workspaceId: invite.workspaceId,
+        userId,
+        email,
+        role: invite.role,
+      });
+
+      // Update invite status
+      await base44.entities.WorkspaceInvite.update(inviteId, {
+        status: "accepted",
+        acceptedBy: userId,
+      });
+
+      const workspace = await getWorkspace(invite.workspaceId);
+      return { success: true, workspace };
+    } catch (error) {
+      console.error("Error accepting invite:", error);
+      return { error: error.message };
     }
+  };
 
-    if (!ROLES[newRole]) {
-      return { error: "Invalid role" };
+  const updateMemberRole = async (workspaceId, userId, newRole, updatedBy) => {
+    try {
+      const workspace = await getWorkspace(workspaceId);
+      if (!workspace) return { error: "Workspace not found" };
+
+      const updater = await base44.entities.WorkspaceTeamMember.filter({
+        workspaceId,
+        userId: updatedBy,
+      });
+
+      if (
+        !updater[0] ||
+        !ROLES[updater[0].role]?.permissions.includes("manage_roles")
+      ) {
+        return { error: "You don't have permission to manage roles" };
+      }
+
+      if (!ROLES[newRole]) {
+        return { error: "Invalid role" };
+      }
+
+      const members = await base44.entities.WorkspaceTeamMember.filter({
+        workspaceId,
+        userId,
+      });
+
+      if (members.length === 0) return { error: "Member not found" };
+
+      const member = await base44.entities.WorkspaceTeamMember.update(
+        members[0].id,
+        { role: newRole }
+      );
+
+      return { success: true, member };
+    } catch (error) {
+      console.error("Error updating member role:", error);
+      return { error: error.message };
     }
-
-    const member = workspace.members.find((m) => m.userId === userId);
-    if (!member) return { error: "Member not found" };
-
-    member.role = newRole;
-    workspace.updatedAt = new Date().toISOString();
-
-    return { success: true, member };
   };
 
-  const removeMember = (workspaceId, userId, removedBy) => {
-    const workspace = getWorkspace(workspaceId);
-    if (!workspace) return { error: "Workspace not found" };
+  const removeMember = async (workspaceId, userId, removedBy) => {
+    try {
+      const workspace = await getWorkspace(workspaceId);
+      if (!workspace) return { error: "Workspace not found" };
 
-    const remover = workspace.members.find((m) => m.userId === removedBy);
-    if (!remover || !ROLES[remover.role]?.permissions.includes("delete")) {
-      return { error: "You don't have permission to remove members" };
+      const remover = await base44.entities.WorkspaceTeamMember.filter({
+        workspaceId,
+        userId: removedBy,
+      });
+
+      if (
+        !remover[0] ||
+        !ROLES[remover[0].role]?.permissions.includes("delete")
+      ) {
+        return { error: "You don't have permission to remove members" };
+      }
+
+      const members = await base44.entities.WorkspaceTeamMember.filter({
+        workspaceId,
+        userId,
+      });
+
+      if (members.length === 0) return { error: "Member not found" };
+
+      await base44.entities.WorkspaceTeamMember.delete(members[0].id);
+      return { success: true };
+    } catch (error) {
+      console.error("Error removing member:", error);
+      return { error: error.message };
     }
-
-    const memberIndex = workspace.members.findIndex((m) => m.userId === userId);
-    if (memberIndex === -1) return { error: "Member not found" };
-
-    workspace.members.splice(memberIndex, 1);
-    workspace.updatedAt = new Date().toISOString();
-
-    return { success: true };
   };
 
-  const getMembers = (workspaceId) => {
-    const workspace = getWorkspace(workspaceId);
-    return workspace ? workspace.members : [];
+  const getMembers = async (workspaceId) => {
+    try {
+      return await base44.entities.WorkspaceTeamMember.filter({
+        workspaceId,
+      });
+    } catch (error) {
+      console.error("Error getting members:", error);
+      return [];
+    }
   };
 
-  const getInvites = (workspaceId) => {
-    return teamMembers[workspaceId]?.invites || [];
+  const getInvites = async (workspaceId) => {
+    try {
+      return await base44.entities.WorkspaceInvite.filter({
+        workspaceId,
+        status: "pending",
+      });
+    } catch (error) {
+      console.error("Error getting invites:", error);
+      return [];
+    }
   };
 
-  const getUserRole = (workspaceId, userId) => {
-    const member = getMembers(workspaceId).find((m) => m.userId === userId);
-    return member?.role;
+  const getUserRole = async (workspaceId, userId) => {
+    try {
+      const members = await base44.entities.WorkspaceTeamMember.filter({
+        workspaceId,
+        userId,
+      });
+      return members[0]?.role;
+    } catch (error) {
+      console.error("Error getting user role:", error);
+      return null;
+    }
   };
 
-  const hasPermission = (workspaceId, userId, permission) => {
-    const role = getUserRole(workspaceId, userId);
+  const hasPermission = async (workspaceId, userId, permission) => {
+    const role = await getUserRole(workspaceId, userId);
     if (!role) return false;
     return ROLES[role]?.permissions.includes(permission);
   };
 
-  const canEdit = (workspaceId, userId) => {
-    return hasPermission(workspaceId, userId, "edit") || hasPermission(workspaceId, userId, "write");
+  const canEdit = async (workspaceId, userId) => {
+    return (
+      (await hasPermission(workspaceId, userId, "edit")) ||
+      (await hasPermission(workspaceId, userId, "write"))
+    );
   };
 
-  const canDelete = (workspaceId, userId) => {
+  const canDelete = async (workspaceId, userId) => {
     return hasPermission(workspaceId, userId, "delete");
   };
 
@@ -178,8 +270,6 @@ export function createWorkspaceManager() {
     createWorkspace,
     getWorkspace,
     getWorkspaces,
-    getCurrentWorkspace,
-    setCurrentWorkspace,
     inviteUser,
     acceptInvite,
     updateMemberRole,

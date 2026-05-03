@@ -1,0 +1,32 @@
+{
+  "name": "WorkspaceTeamMember",
+  "type": "object",
+  "properties": {
+    "workspaceId": {
+      "type": "string",
+      "description": "ID of workspace"
+    },
+    "userId": {
+      "type": "string",
+      "description": "ID of user"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email of team member"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "description": "Member role in workspace"
+    }
+  },
+  "required": [
+    "workspaceId",
+    "userId",
+    "role"
+  ]
+}

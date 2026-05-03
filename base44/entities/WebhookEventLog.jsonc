@@ -1,0 +1,51 @@
+{
+  "name": "WebhookEventLog",
+  "type": "object",
+  "properties": {
+    "webhookTriggerId": {
+      "type": "string",
+      "description": "ID of webhook trigger"
+    },
+    "workflowId": {
+      "type": "string",
+      "description": "ID of workflow"
+    },
+    "payload": {
+      "type": "string",
+      "description": "JSON stringified webhook payload"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "received",
+        "processing",
+        "success",
+        "failed"
+      ],
+      "default": "received",
+      "description": "Event status"
+    },
+    "clientIP": {
+      "type": "string",
+      "description": "Client IP address"
+    },
+    "headers": {
+      "type": "string",
+      "description": "JSON stringified headers"
+    },
+    "errorMessage": {
+      "type": "string",
+      "description": "Error message if failed (optional)"
+    },
+    "processingTime": {
+      "type": "integer",
+      "description": "Processing time in milliseconds"
+    }
+  },
+  "required": [
+    "webhookTriggerId",
+    "workflowId",
+    "payload",
+    "status"
+  ]
+}

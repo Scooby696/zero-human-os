@@ -1,0 +1,54 @@
+{
+  "name": "WorkspaceInvite",
+  "type": "object",
+  "properties": {
+    "workspaceId": {
+      "type": "string",
+      "description": "ID of workspace"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email invited"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "viewer",
+        "editor",
+        "admin"
+      ],
+      "description": "Role being invited"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined",
+        "expired"
+      ],
+      "default": "pending",
+      "description": "Invite status"
+    },
+    "invitedBy": {
+      "type": "string",
+      "description": "User ID who sent invite"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When invite expires"
+    },
+    "acceptedBy": {
+      "type": "string",
+      "description": "User ID who accepted invite (optional)"
+    }
+  },
+  "required": [
+    "workspaceId",
+    "email",
+    "role",
+    "invitedBy",
+    "expiresAt"
+  ]
+}

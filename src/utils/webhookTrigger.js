@@ -1,6 +1,6 @@
-export function createWebhookTriggerManager() {
-  let webhookTriggers = {};
+import { base44 } from "@/api/base44Client";
 
+export function createWebhookTriggerManager() {
   const generateSecureToken = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let token = "";
@@ -15,44 +15,54 @@ export function createWebhookTriggerManager() {
     return `${baseURL}/api/webhooks/${workflowId}/${triggerId}`;
   };
 
-  const createWebhookTrigger = (workflowId, triggerId, nodeConfig = {}) => {
-    const token = generateSecureToken();
-    const publicURL = generatePublicURL(workflowId, triggerId);
+  const createWebhookTrigger = async (workflowId, triggerId, nodeConfig = {}) => {
+    try {
+      const token = generateSecureToken();
+      const publicURL = generatePublicURL(workflowId, triggerId);
 
-    const trigger = {
-      id: triggerId,
-      workflowId,
-      token,
-      publicURL,
-      createdAt: new Date().toISOString(),
-      lastTriggered: null,
-      triggerCount: 0,
-      isActive: true,
-      eventLog: [],
-      config: nodeConfig,
-      ipWhitelist: nodeConfig.ipWhitelist || [],
-      requiresAuth: nodeConfig.requiresAuth || false,
-      authHeaderName: nodeConfig.authHeaderName || "X-Webhook-Token",
-    };
+      const trigger = await base44.entities.WebhookTrigger.create({
+        workflowId,
+        triggerId,
+        token,
+        publicURL,
+        isActive: true,
+        triggerCount: 0,
+        authHeaderName: nodeConfig.authHeaderName || "X-Webhook-Token",
+        requiresAuth: nodeConfig.requiresAuth || false,
+        ipWhitelist: JSON.stringify(nodeConfig.ipWhitelist || []),
+      });
 
-    if (!webhookTriggers[workflowId]) {
-      webhookTriggers[workflowId] = {};
+      return trigger;
+    } catch (error) {
+      console.error("Error creating webhook trigger:", error);
+      throw error;
     }
-
-    webhookTriggers[workflowId][triggerId] = trigger;
-    return trigger;
   };
 
-  const getWebhookTrigger = (workflowId, triggerId) => {
-    return webhookTriggers[workflowId]?.[triggerId];
+  const getWebhookTrigger = async (workflowId, triggerId) => {
+    try {
+      const triggers = await base44.entities.WebhookTrigger.filter({
+        workflowId,
+        triggerId,
+      });
+      return triggers[0] || null;
+    } catch (error) {
+      console.error("Error getting webhook trigger:", error);
+      return null;
+    }
   };
 
-  const getAllWebhookTriggers = (workflowId) => {
-    return Object.values(webhookTriggers[workflowId] || {});
+  const getAllWebhookTriggers = async (workflowId) => {
+    try {
+      return await base44.entities.WebhookTrigger.filter({ workflowId });
+    } catch (error) {
+      console.error("Error getting webhook triggers:", error);
+      return [];
+    }
   };
 
-  const validateWebhookRequest = (workflowId, triggerId, token, clientIP = null) => {
-    const trigger = getWebhookTrigger(workflowId, triggerId);
+  const validateWebhookRequest = async (workflowId, triggerId, token, clientIP = null) => {
+    const trigger = await getWebhookTrigger(workflowId, triggerId);
 
     if (!trigger) {
       return { valid: false, error: "Webhook trigger not found" };
@@ -66,64 +76,103 @@ export function createWebhookTriggerManager() {
       return { valid: false, error: "Invalid authentication token" };
     }
 
-    if (trigger.ipWhitelist.length > 0 && clientIP && !trigger.ipWhitelist.includes(clientIP)) {
+    const whitelist = JSON.parse(trigger.ipWhitelist || "[]");
+    if (whitelist.length > 0 && clientIP && !whitelist.includes(clientIP)) {
       return { valid: false, error: "IP address not whitelisted" };
     }
 
     return { valid: true };
   };
 
-  const logWebhookEvent = (workflowId, triggerId, event) => {
-    const trigger = getWebhookTrigger(workflowId, triggerId);
-    if (!trigger) return;
+  const logWebhookEvent = async (workflowId, triggerId, event, status = "received", clientIP = null, headers = {}) => {
+    try {
+      const trigger = await getWebhookTrigger(workflowId, triggerId);
+      if (!trigger) return null;
 
-    const eventRecord = {
-      id: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-      timestamp: new Date().toISOString(),
-      payload: event,
-      status: "received",
-    };
+      const eventRecord = await base44.entities.WebhookEventLog.create({
+        webhookTriggerId: trigger.id,
+        workflowId,
+        payload: JSON.stringify(event),
+        status,
+        clientIP: clientIP || "",
+        headers: JSON.stringify(headers),
+        processingTime: 0,
+      });
 
-    trigger.eventLog.push(eventRecord);
-    trigger.lastTriggered = new Date().toISOString();
-    trigger.triggerCount += 1;
+      // Update trigger count and last triggered
+      await base44.entities.WebhookTrigger.update(trigger.id, {
+        triggerCount: trigger.triggerCount + 1,
+        lastTriggered: new Date().toISOString(),
+      });
 
-    // Keep only last 100 events
-    if (trigger.eventLog.length > 100) {
-      trigger.eventLog = trigger.eventLog.slice(-100);
+      return eventRecord;
+    } catch (error) {
+      console.error("Error logging webhook event:", error);
+      return null;
     }
-
-    return eventRecord;
   };
 
-  const getEventLog = (workflowId, triggerId) => {
-    const trigger = getWebhookTrigger(workflowId, triggerId);
-    return trigger?.eventLog || [];
+  const getEventLog = async (workflowId, triggerId, limit = 100) => {
+    try {
+      const trigger = await getWebhookTrigger(workflowId, triggerId);
+      if (!trigger) return [];
+
+      const events = await base44.entities.WebhookEventLog.filter({
+        webhookTriggerId: trigger.id,
+      }, "-created_date", limit);
+
+      return events.map((e) => ({
+        ...e,
+        payload: JSON.parse(e.payload),
+        headers: JSON.parse(e.headers),
+      }));
+    } catch (error) {
+      console.error("Error getting event log:", error);
+      return [];
+    }
   };
 
-  const updateWebhookTrigger = (workflowId, triggerId, updates) => {
-    const trigger = getWebhookTrigger(workflowId, triggerId);
-    if (!trigger) return null;
+  const updateWebhookTrigger = async (workflowId, triggerId, updates) => {
+    try {
+      const trigger = await getWebhookTrigger(workflowId, triggerId);
+      if (!trigger) return null;
 
-    Object.assign(trigger, updates);
-    return trigger;
+      return await base44.entities.WebhookTrigger.update(trigger.id, updates);
+    } catch (error) {
+      console.error("Error updating webhook trigger:", error);
+      return null;
+    }
   };
 
-  const deleteWebhookTrigger = (workflowId, triggerId) => {
-    if (webhookTriggers[workflowId]) {
-      delete webhookTriggers[workflowId][triggerId];
+  const deleteWebhookTrigger = async (workflowId, triggerId) => {
+    try {
+      const trigger = await getWebhookTrigger(workflowId, triggerId);
+      if (!trigger) return false;
+
+      await base44.entities.WebhookTrigger.delete(trigger.id);
       return true;
+    } catch (error) {
+      console.error("Error deleting webhook trigger:", error);
+      return false;
     }
-    return false;
   };
 
-  const rotateToken = (workflowId, triggerId) => {
-    const trigger = getWebhookTrigger(workflowId, triggerId);
-    if (!trigger) return null;
+  const rotateToken = async (workflowId, triggerId) => {
+    try {
+      const trigger = await getWebhookTrigger(workflowId, triggerId);
+      if (!trigger) return null;
 
-    trigger.token = generateSecureToken();
-    trigger.publicURL = generatePublicURL(workflowId, triggerId);
-    return trigger;
+      const newToken = generateSecureToken();
+      const newURL = generatePublicURL(workflowId, triggerId);
+
+      return await base44.entities.WebhookTrigger.update(trigger.id, {
+        token: newToken,
+        publicURL: newURL,
+      });
+    } catch (error) {
+      console.error("Error rotating token:", error);
+      return null;
+    }
   };
 
   const copyToClipboard = async (text) => {

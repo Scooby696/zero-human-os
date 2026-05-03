@@ -1,0 +1,57 @@
+{
+  "name": "WebhookTrigger",
+  "type": "object",
+  "properties": {
+    "workflowId": {
+      "type": "string",
+      "description": "ID of parent workflow"
+    },
+    "triggerId": {
+      "type": "string",
+      "description": "Node ID of webhook trigger"
+    },
+    "token": {
+      "type": "string",
+      "description": "Secure auth token (encrypted)"
+    },
+    "publicURL": {
+      "type": "string",
+      "description": "Public webhook URL"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether webhook is active"
+    },
+    "triggerCount": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of times triggered"
+    },
+    "lastTriggered": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp of last trigger"
+    },
+    "authHeaderName": {
+      "type": "string",
+      "default": "X-Webhook-Token",
+      "description": "Name of auth header"
+    },
+    "requiresAuth": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether auth is required"
+    },
+    "ipWhitelist": {
+      "type": "string",
+      "description": "JSON stringified array of IPs"
+    }
+  },
+  "required": [
+    "workflowId",
+    "triggerId",
+    "token",
+    "publicURL"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Workspace",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Workspace name"
+    },
+    "ownerId": {
+      "type": "string",
+      "description": "User ID of workspace owner"
+    },
+    "description": {
+      "type": "string",
+      "description": "Workspace description (optional)"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether workspace is active"
+    }
+  },
+  "required": [
+    "name",
+    "ownerId"
+  ]
+}

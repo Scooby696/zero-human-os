@@ -1,0 +1,47 @@
+{
+  "name": "Workflow",
+  "type": "object",
+  "properties": {
+    "workspaceId": {
+      "type": "string",
+      "description": "ID of parent workspace"
+    },
+    "name": {
+      "type": "string",
+      "description": "Workflow name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Workflow description (optional)"
+    },
+    "nodes": {
+      "type": "string",
+      "description": "JSON stringified array of workflow nodes"
+    },
+    "edges": {
+      "type": "string",
+      "description": "JSON stringified array of workflow edges"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether workflow is active"
+    },
+    "lastExecuted": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp of last execution"
+    },
+    "executionCount": {
+      "type": "integer",
+      "default": 0,
+      "description": "Total number of executions"
+    }
+  },
+  "required": [
+    "workspaceId",
+    "name",
+    "nodes",
+    "edges"
+  ]
+}
