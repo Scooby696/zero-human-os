@@ -23,6 +23,7 @@ import { createVersionControl } from "../utils/versionControl";
 import VersionHistory from "../components/workflow/VersionHistory";
 import AgentSelector from "../components/workflow/AgentSelector";
 import WalletManagement from "../components/workflow/WalletManagement";
+import TemplateLibraryModal from "../components/workflow/TemplateLibraryModal";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -139,6 +140,10 @@ export default function WorkflowBuilder() {
     setEdges((prev) => [...prev, ...newEdges]);
   };
 
+  const handleImportTemplate = (template) => {
+    loadTemplate(template);
+  };
+
   const handleSaveTemplate = (name, description) => {
     templates.saveTemplate(name, description, nodes, edges);
   };
@@ -219,9 +224,9 @@ export default function WorkflowBuilder() {
             />
           </div>
           <button
-            onClick={() => setShowTemplateLibrary(!showTemplateLibrary)}
+            onClick={() => setShowTemplateLibrary(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border/40 text-foreground hover:bg-secondary transition-colors"
-            title="Open template library"
+            title="Browse and import templates"
           >
             <Library className="w-3.5 h-3.5" />
             Templates
@@ -261,14 +266,6 @@ export default function WorkflowBuilder() {
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        <WorkflowTemplateLibraryV2
-          isOpen={showTemplateLibrary}
-          onClose={() => setShowTemplateLibrary(false)}
-          onLoadTemplate={loadTemplate}
-          customTemplates={templates.customTemplates}
-          onDeleteTemplate={templates.deleteTemplate}
-          onDragStart={handleDragTemplate}
-        />
         <WorkflowSidebar onAddNode={addNode} onOpenAgentSelector={() => setShowAgentSelector(true)} />
         <SaveTemplateModal
           isOpen={showSaveModal}
@@ -351,6 +348,11 @@ export default function WorkflowBuilder() {
         isOpen={showWalletManagement}
         onClose={() => setShowWalletManagement(false)}
         agents={nodes}
+      />
+      <TemplateLibraryModal
+        isOpen={showTemplateLibrary}
+        onClose={() => setShowTemplateLibrary(false)}
+        onImport={handleImportTemplate}
       />
     </div>
   );
