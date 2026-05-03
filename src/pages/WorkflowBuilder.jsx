@@ -393,6 +393,7 @@ export default function WorkflowBuilder() {
             onClose={sim.reset}
             log={sim.log}
             workflowName={workflowName}
+            parallelExecutionData={sim.parallelExecutionData}
           />
         )}
         {selectedNode && sim.simState === "idle" && (

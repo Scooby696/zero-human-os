@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { errorHandler } from "../utils/errorHandler";
+import { analyzeWorkflowGraph } from "../utils/workflowGraphAnalyzer";
+import { parallelExecutor } from "../utils/parallelExecutor";
 
 export function useSimulation(nodes, edges) {
   const [simState, setSimState] = useState("idle"); // idle | running | paused | done
@@ -10,6 +12,7 @@ export function useSimulation(nodes, edges) {
   const [log, setLog] = useState([]);
   const [nodeData, setNodeData] = useState({}); // { [nodeId]: { input, output } }
   const [pausedNodeId, setPausedNodeId] = useState(null);
+  const [parallelExecutionData, setParallelExecutionData] = useState(null);
   const cancelRef = useRef(false);
   const pauseRef = useRef(false);
 
@@ -52,6 +55,13 @@ export function useSimulation(nodes, edges) {
     setLog([]);
     setNodeData({});
     setPausedNodeId(null);
+
+    // Analyze workflow graph for parallel execution opportunities
+    const graphAnalysis = analyzeWorkflowGraph(nodes, edges);
+    addLog(`📊 Analyzing workflow graph...`, "info");
+    if (graphAnalysis.parallelBatches.length > 0) {
+      addLog(`⚡ Detected ${graphAnalysis.parallelBatches.length} parallel execution opportunity(ies)`, "info");
+    }
 
     const start = nodes.find((n) => n.type === "trigger") || nodes[0];
     addLog(`🚀 Test Mode started — entry: "${start.label}"`, "info");
@@ -152,6 +162,35 @@ export function useSimulation(nodes, edges) {
         break;
       }
 
+      // Check for parallel branches
+      if (outEdges.length > 1) {
+        const nextNodes = outEdges
+          .map((e) => nodes.find((n) => n.id === e.to))
+          .filter((n) => n && !visitedNodes.has(n.id));
+
+        if (nextNodes.length > 1) {
+          addLog(`⚡ Executing ${nextNodes.length} parallel branches`, "info");
+          const execResult = await parallelExecutor.executeNodesInParallel(
+            nextNodes.map((n) => n.id),
+            nodes
+          );
+          setParallelExecutionData(execResult);
+          addLog(
+            `✅ Parallel branches completed (${execResult.speedupFactor}x speedup)`,
+            "success"
+          );
+
+          for (const node of nextNodes) {
+            visitedNodes.add(node.id);
+            setNodeData((prev) => ({
+              ...prev,
+              [node.id]: { input: context, output: { parallel_branch: true } },
+            }));
+          }
+          break; // Move to end after parallel execution
+        }
+      }
+
       const nextEdge =
         outEdges.find((e) => !visitedNodes.has(e.to)) || outEdges[0];
       const nextNode = nodes.find((n) => n.id === nextEdge.to);
@@ -181,7 +220,7 @@ export function useSimulation(nodes, edges) {
   return {
     simState, activeNodeId, activeEdgeId,
     visitedNodeIds, visitedEdgeIds,
-    log, nodeData, pausedNodeId,
+    log, nodeData, pausedNodeId, parallelExecutionData,
     run, reset, resume,
   };
 }
