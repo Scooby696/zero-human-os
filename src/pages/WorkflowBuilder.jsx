@@ -4,6 +4,7 @@ import { ArrowLeft, GitBranch } from "lucide-react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
 import WorkflowToolbar from "../components/workflow/WorkflowToolbar";
+import NodeConfigPanel from "../components/workflow/NodeConfigPanel";
 import { DEFAULT_WORKFLOWS } from "../components/workflow/workflowData";
 
 export default function WorkflowBuilder() {
@@ -102,6 +103,13 @@ export default function WorkflowBuilder() {
           onAddEdge={addEdge}
           onDeleteEdge={deleteEdge}
         />
+        {selectedNode && (
+          <NodeConfigPanel
+            node={nodes.find((n) => n.id === selectedNode.id)}
+            onUpdateNode={updateNode}
+            onClose={() => setSelectedNode(null)}
+          />
+        )}
       </div>
     </div>
   );
