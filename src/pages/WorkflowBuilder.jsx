@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap, TrendingUp, Lock } from "lucide-react";
+import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap, TrendingUp, Lock, Plus } from "lucide-react";
 import { useEffect } from "react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
@@ -29,6 +29,10 @@ import { webhookLogger } from "../utils/webhookLogger";
 import AdvancedScheduler from "../components/workflow/AdvancedScheduler";
 import ExecutionAnalyticsPanel from "../components/workflow/ExecutionAnalyticsPanel";
 import SecretVaultModal from "../components/vault/SecretVaultModal";
+import WorkspaceSelector from "../components/workspace/WorkspaceSelector";
+import WorkspaceInviteModal from "../components/workspace/WorkspaceInviteModal";
+import WorkspaceTeamManager from "../components/workspace/WorkspaceTeamManager";
+import { workspaceManager } from "../utils/workspaceManager";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -50,6 +54,9 @@ export default function WorkflowBuilder() {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showSecretVault, setShowSecretVault] = useState(false);
   const [scheduleConfig, setScheduleConfig] = useState(null);
+  const [showWorkspaceInvite, setShowWorkspaceInvite] = useState(false);
+  const [showTeamManager, setShowTeamManager] = useState(false);
+  const [currentUserId] = useState("user_demo_001");
   const nextId = useRef(100);
   const versionControl = useRef(null);
   const sim = useSimulation(nodes, edges);
@@ -211,6 +218,10 @@ export default function WorkflowBuilder() {
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-card/60 backdrop-blur-xl z-10 shrink-0">
+        <div className="flex items-center gap-2">
+          <WorkspaceSelector currentUserId={currentUserId} onWorkspaceChange={() => {}} />
+          <div className="h-4 w-px bg-border/50" />
+        </div>
         <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
@@ -289,6 +300,21 @@ export default function WorkflowBuilder() {
           >
             <Save className="w-3.5 h-3.5" />
             Save Template
+          </button>
+          <button
+            onClick={() => setShowTeamManager(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-400/10 border border-purple-400/20 text-purple-400 hover:bg-purple-400/20 transition-colors"
+            title="Manage team members"
+          >
+            👥 Team
+          </button>
+          <button
+            onClick={() => setShowWorkspaceInvite(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-pink-400/10 border border-pink-400/20 text-pink-400 hover:bg-pink-400/20 transition-colors"
+            title="Invite team members"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Invite
           </button>
         </div>
         <WorkflowToolbar
@@ -423,6 +449,38 @@ export default function WorkflowBuilder() {
         isOpen={showSecretVault}
         onClose={() => setShowSecretVault(false)}
       />
+
+      <WorkspaceInviteModal
+        isOpen={showWorkspaceInvite}
+        onClose={() => setShowWorkspaceInvite(false)}
+        workspaceId={workspaceManager.getCurrentWorkspace()?.id}
+        currentUserId={currentUserId}
+      />
+
+      {showTeamManager && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={() => setShowTeamManager(false)} />
+      )}
+      {showTeamManager && (
+        <div className="fixed inset-4 bg-card border border-border/50 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-secondary/20 shrink-0">
+            <h2 className="text-lg font-bold text-foreground">Team Management</h2>
+            <button
+              onClick={() => setShowTeamManager(false)}
+              className="text-muted-foreground hover:text-foreground p-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            <WorkspaceTeamManager
+              workspaceId={workspaceManager.getCurrentWorkspace()?.id}
+              currentUserId={currentUserId}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
