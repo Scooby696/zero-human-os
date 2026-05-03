@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap } from "lucide-react";
+import { ArrowLeft, GitBranch, Library, Save, Clock, CreditCard, Zap, TrendingUp } from "lucide-react";
 import { useEffect } from "react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
@@ -26,6 +26,8 @@ import WalletManagement from "../components/workflow/WalletManagement";
 import TemplateLibraryModal from "../components/workflow/TemplateLibraryModal";
 import WebhookDebugger from "../components/workflow/WebhookDebugger";
 import { webhookLogger } from "../utils/webhookLogger";
+import AdvancedScheduler from "../components/workflow/AdvancedScheduler";
+import ExecutionAnalyticsPanel from "../components/workflow/ExecutionAnalyticsPanel";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -43,6 +45,9 @@ export default function WorkflowBuilder() {
   const [showAgentSelector, setShowAgentSelector] = useState(false);
   const [showWalletManagement, setShowWalletManagement] = useState(false);
   const [showWebhookDebugger, setShowWebhookDebugger] = useState(false);
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [scheduleConfig, setScheduleConfig] = useState(null);
   const nextId = useRef(100);
   const versionControl = useRef(null);
   const sim = useSimulation(nodes, edges);
@@ -243,6 +248,22 @@ export default function WorkflowBuilder() {
             Webhooks
           </button>
           <button
+            onClick={() => setShowScheduler(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-400/10 border border-violet-400/20 text-violet-400 hover:bg-violet-400/20 transition-colors"
+            title="Advanced scheduling and optimization"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            Scheduler
+          </button>
+          <button
+            onClick={() => setShowAnalytics(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 hover:bg-emerald-400/20 transition-colors"
+            title="View execution analytics"
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            Analytics
+          </button>
+          <button
             onClick={() => setShowWalletManagement(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-400/10 border border-amber-400/20 text-amber-400 hover:bg-amber-400/20 transition-colors"
             title="Manage wallets for paid agents"
@@ -369,6 +390,18 @@ export default function WorkflowBuilder() {
         isOpen={showWebhookDebugger}
         onClose={() => setShowWebhookDebugger(false)}
         nodes={nodes}
+      />
+      <AdvancedScheduler
+        isOpen={showScheduler}
+        onClose={() => setShowScheduler(false)}
+        workflow={workflowName}
+        onSave={(config) => {
+          setScheduleConfig(config);
+        }}
+      />
+      <ExecutionAnalyticsPanel
+        isOpen={showAnalytics}
+        onClose={() => setShowAnalytics(false)}
       />
     </div>
   );
