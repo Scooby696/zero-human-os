@@ -46,9 +46,10 @@ const CONFIG_FIELDS = {
     { key: "max_tokens", label: "Max Tokens", type: "number", placeholder: "512" },
   ],
   webhook_trigger: [
-    { key: "webhook_url", label: "Webhook URL", type: "text", placeholder: "https://your-service.com/webhook" },
+    { key: "authHeaderName", label: "Auth Header Name", type: "text", placeholder: "X-Webhook-Token" },
+    { key: "requiresAuth", label: "Require Authentication", type: "select", options: ["true", "false"] },
+    { key: "ipWhitelist", label: "IP Whitelist (comma-separated, optional)", type: "textarea", placeholder: "192.168.1.1, 10.0.0.1" },
     { key: "expected_fields", label: "Expected Fields (JSON)", type: "textarea", placeholder: '{"user_id": "string", "action": "string"}' },
-    { key: "timeout_ms", label: "Timeout (ms)", type: "number", placeholder: "10000" },
   ],
   webhook_action: [
     { key: "target_url", label: "Target Endpoint URL", type: "text", placeholder: "https://api.example.com/callback" },

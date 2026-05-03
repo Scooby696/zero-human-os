@@ -33,6 +33,7 @@ import WorkspaceSelector from "../components/workspace/WorkspaceSelector";
 import WorkspaceInviteModal from "../components/workspace/WorkspaceInviteModal";
 import WorkspaceTeamManager from "../components/workspace/WorkspaceTeamManager";
 import { workspaceManager } from "../utils/workspaceManager";
+import WebhookTriggerNode from "../components/workflow/WebhookTriggerNode";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -385,11 +386,22 @@ export default function WorkflowBuilder() {
           />
         )}
         {selectedNode && sim.simState === "idle" && (
-          <NodeConfigPanel
-            node={nodes.find((n) => n.id === selectedNode.id)}
-            onUpdateNode={updateNode}
-            onClose={() => setSelectedNode(null)}
-          />
+          <>
+            <NodeConfigPanel
+              node={nodes.find((n) => n.id === selectedNode.id)}
+              onUpdateNode={updateNode}
+              onClose={() => setSelectedNode(null)}
+            />
+            {nodes.find((n) => n.id === selectedNode.id)?.type === "webhook_trigger" && (
+              <div className="w-80 shrink-0 bg-card/50 backdrop-blur-xl border-l border-border/50 overflow-y-auto p-4">
+                <WebhookTriggerNode
+                  workflowId={workflowName}
+                  nodeId={selectedNode.id}
+                  nodeConfig={nodes.find((n) => n.id === selectedNode.id)?.config}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 
