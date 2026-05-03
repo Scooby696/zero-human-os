@@ -17,6 +17,7 @@ import OpenSourceTools from './pages/OpenSourceTools';
 import CryptoArchitecture from './pages/CryptoArchitecture';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import PreLaunchAudit from './pages/PreLaunchAudit';
+import Deployment from './pages/Deployment';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -56,6 +57,7 @@ const AuthenticatedApp = () => {
         <Route path="/crypto-architecture" element={<CryptoArchitecture />} />
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/audit/pre-launch" element={<PreLaunchAudit />} />
+        <Route path="/deployments" element={<Deployment />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <ZHSVoiceButton />
