@@ -36,8 +36,10 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
+  // Handle authentication errors (but allow /setup for new users)
+  const isSetupRoute = window.location.pathname === '/setup';
+  
+  if (authError && !isSetupRoute) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
