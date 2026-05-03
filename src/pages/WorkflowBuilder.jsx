@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, GitBranch, Library, Save } from "lucide-react";
+import { ArrowLeft, GitBranch, Library, Save, Clock } from "lucide-react";
+import { useEffect } from "react";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
 import WorkflowToolbar from "../components/workflow/WorkflowToolbar";
@@ -18,6 +19,8 @@ import { layoutNodes } from "../utils/layoutAlgorithm";
 import { useCollaboration } from "../hooks/useCollaboration";
 import PresenceIndicators from "../components/workflow/PresenceIndicators";
 import CollaborationSync from "../components/workflow/CollaborationSync";
+import { createVersionControl } from "../utils/versionControl";
+import VersionHistory from "../components/workflow/VersionHistory";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -30,10 +33,19 @@ export default function WorkflowBuilder() {
   const [validationErrors, setValidationErrors] = useState([]);
   const [ignoreValidation, setIgnoreValidation] = useState(false);
   const [syncStatus, setSyncStatus] = useState("synced");
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [versions, setVersions] = useState([]);
   const nextId = useRef(100);
+  const versionControl = useRef(null);
   const sim = useSimulation(nodes, edges);
   const templates = useTemplateManager();
   const { activeUsers, cursorPositions, updateCursor } = useCollaboration();
+
+  // Initialize version control
+  useEffect(() => {
+    versionControl.current = createVersionControl(workflowName);
+    setVersions(versionControl.current.listVersions());
+  }, [workflowName]);
 
   const toggleBreakpoint = useCallback((nodeId) => {
     setBreakpoints((prev) => {
@@ -150,16 +162,46 @@ export default function WorkflowBuilder() {
     setSyncStatus("synced");
   };
 
+  const handleSaveVersion = (label) => {
+    const newVersion = versionControl.current.saveVersion(nodes, edges, label);
+    setVersions(versionControl.current.listVersions());
+  };
+
+  const handleRestoreVersion = (version) => {
+    setNodes(JSON.parse(JSON.stringify(version.nodes)));
+    setEdges(JSON.parse(JSON.stringify(version.edges)));
+    setSelectedNode(null);
+    setShowVersionHistory(false);
+  };
+
+  const handleDeleteVersion = (versionId) => {
+    versionControl.current.deleteVersion(versionId);
+    setVersions(versionControl.current.listVersions());
+  };
+
+  const handleUpdateLabel = (versionId, newLabel) => {
+    versionControl.current.updateLabel(versionId, newLabel);
+    setVersions(versionControl.current.listVersions());
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-card/60 backdrop-blur-xl z-10 shrink-0">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm">
             <ArrowLeft className="w-4 h-4" />
             Back
           </Link>
           <div className="h-4 w-px bg-border/50" />
+          <button
+            onClick={() => setShowVersionHistory(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary/50 border border-border/40 text-foreground hover:bg-secondary transition-colors"
+            title="View version history"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            History
+          </button>
           <div className="flex items-center gap-2">
             <GitBranch className="w-4 h-4 text-primary" />
             <input
@@ -275,6 +317,15 @@ export default function WorkflowBuilder() {
         canIgnore={validationErrors.filter((e) => !["no_trigger", "no_end"].includes(e.type)).length > 0}
       />
       <CollaborationSync isConnected={true} syncStatus={syncStatus} />
+      <VersionHistory
+        isOpen={showVersionHistory}
+        onClose={() => setShowVersionHistory(false)}
+        versions={versions}
+        onRestore={handleRestoreVersion}
+        onDelete={handleDeleteVersion}
+        onUpdateLabel={handleUpdateLabel}
+        onSaveVersion={handleSaveVersion}
+      />
     </div>
   );
 }
