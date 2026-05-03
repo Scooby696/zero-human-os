@@ -15,6 +15,9 @@ import { useSimulation } from "../hooks/useSimulation";
 import { useTemplateManager } from "../hooks/useTemplateManager";
 import { validateWorkflow } from "../utils/workflowValidator";
 import { layoutNodes } from "../utils/layoutAlgorithm";
+import { useCollaboration } from "../hooks/useCollaboration";
+import PresenceIndicators from "../components/workflow/PresenceIndicators";
+import CollaborationSync from "../components/workflow/CollaborationSync";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -26,9 +29,11 @@ export default function WorkflowBuilder() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
   const [ignoreValidation, setIgnoreValidation] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("synced");
   const nextId = useRef(100);
   const sim = useSimulation(nodes, edges);
   const templates = useTemplateManager();
+  const { activeUsers, cursorPositions, updateCursor } = useCollaboration();
 
   const toggleBreakpoint = useCallback((nodeId) => {
     setBreakpoints((prev) => {
@@ -139,6 +144,12 @@ export default function WorkflowBuilder() {
     setNodes(arrangedNodes);
   };
 
+  const handleCanvasMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    updateCursor(e.clientX - rect.left, e.clientY - rect.top, selectedNode?.id);
+    setSyncStatus("synced");
+  };
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
@@ -207,7 +218,8 @@ export default function WorkflowBuilder() {
           onSave={handleSaveTemplate}
           selectedNodeCount={nodes.length}
         />
-        <div className="flex-1 relative overflow-hidden">
+        <div className="flex-1 relative overflow-hidden" onMouseMove={handleCanvasMouseMove}>
+          <PresenceIndicators activeUsers={activeUsers} cursorPositions={cursorPositions} />
           <WorkflowCanvas
             nodes={nodes}
             edges={edges}
@@ -262,6 +274,7 @@ export default function WorkflowBuilder() {
         }}
         canIgnore={validationErrors.filter((e) => !["no_trigger", "no_end"].includes(e.type)).length > 0}
       />
+      <CollaborationSync isConnected={true} syncStatus={syncStatus} />
     </div>
   );
 }
