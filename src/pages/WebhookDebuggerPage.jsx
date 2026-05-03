@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { AlertCircle, CheckCircle, Clock, RefreshCw, Search, Filter, ChevronDown, Copy, Eye, EyeOff, Play } from 'lucide-react';
 import { toast } from 'sonner';
+import WebhookDeduplicationMonitor from '@/components/workflow/WebhookDeduplicationMonitor';
 
 function LogViewer({ logs }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -233,6 +234,9 @@ export default function WebhookDebuggerPage() {
             Refresh
           </button>
         </div>
+
+        {/* Deduplication Monitor */}
+        <WebhookDeduplicationMonitor />
 
         {/* Stats */}
         <div className="grid grid-cols-4 gap-3">
