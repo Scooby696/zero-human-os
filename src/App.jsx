@@ -20,6 +20,7 @@ import PreLaunchAudit from './pages/PreLaunchAudit';
 import Deployment from './pages/Deployment';
 import WebhookDebuggerPage from './pages/WebhookDebuggerPage';
 import CostOptimization from './pages/CostOptimization';
+import DeploymentAudit from './pages/DeploymentAudit';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,6 +64,7 @@ const AuthenticatedApp = () => {
         <Route path="/audit/pre-launch-full" element={<PreLaunchAudit />} />
         <Route path="/webhooks/debug" element={<WebhookDebuggerPage />} />
         <Route path="/cost-optimization" element={<CostOptimization />} />
+        <Route path="/audit/deployment" element={<DeploymentAudit />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <ZHSVoiceButton />
