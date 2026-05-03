@@ -1,23 +1,19 @@
 import { useState, useCallback, useRef } from "react";
 
-/**
- * Walks the workflow graph from trigger → end, visiting each node
- * in topological BFS order with a timed delay between steps.
- */
 export function useSimulation(nodes, edges) {
-  const [simState, setSimState] = useState("idle"); // idle | running | done | error
+  const [simState, setSimState] = useState("idle"); // idle | running | done
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [activeEdgeId, setActiveEdgeId] = useState(null);
   const [visitedNodeIds, setVisitedNodeIds] = useState([]);
   const [visitedEdgeIds, setVisitedEdgeIds] = useState([]);
   const [log, setLog] = useState([]);
+  const [nodeData, setNodeData] = useState({}); // { [nodeId]: { input, output } }
   const cancelRef = useRef(false);
 
-  const delay = (ms) =>
+  const sleep = (ms) =>
     new Promise((resolve) => {
-      const t = setTimeout(resolve, ms);
-      // allow cancellation
-      cancelRef.current && clearTimeout(t);
+      const id = setTimeout(resolve, ms);
+      cancelRef._lastTimer = id;
     });
 
   const addLog = (msg, type = "info") =>
@@ -31,6 +27,7 @@ export function useSimulation(nodes, edges) {
     setVisitedNodeIds([]);
     setVisitedEdgeIds([]);
     setLog([]);
+    setNodeData({});
   }, []);
 
   const run = useCallback(async () => {
@@ -42,48 +39,57 @@ export function useSimulation(nodes, edges) {
     setVisitedNodeIds([]);
     setVisitedEdgeIds([]);
     setLog([]);
+    setNodeData({});
 
-    // Find starting node (trigger, or first node if none)
     const start = nodes.find((n) => n.type === "trigger") || nodes[0];
-    addLog(`Starting simulation from "${start.label}"`, "info");
+    addLog(`🚀 Test Mode started — entry: "${start.label}"`, "info");
 
     let current = start;
     const visitedNodes = new Set();
+    // Data context that flows between nodes
+    let context = generateTriggerPayload(start);
 
     while (current && !cancelRef.current) {
       visitedNodes.add(current.id);
       setActiveNodeId(current.id);
       setVisitedNodeIds([...visitedNodes]);
 
+      const input = { ...context };
       const stepMs = getStepDuration(current.type);
       addLog(getNodeLog(current), getLogType(current.type));
 
-      await delay(stepMs);
+      await sleep(stepMs);
       if (cancelRef.current) break;
+
+      const output = processNode(current, context);
+      context = { ...context, ...output };
+
+      setNodeData((prev) => ({
+        ...prev,
+        [current.id]: { input, output },
+      }));
 
       setActiveNodeId(null);
 
-      // Find outgoing edges from this node
       const outEdges = edges.filter((e) => e.from === current.id);
-
       if (outEdges.length === 0) {
-        addLog(`Flow ended at "${current.label}"`, "success");
+        addLog(`✅ Flow ended at "${current.label}"`, "success");
         break;
       }
 
-      // Pick first unvisited outgoing edge (avoid infinite loops)
-      const nextEdge = outEdges.find((e) => !visitedNodes.has(e.to)) || outEdges[0];
+      const nextEdge =
+        outEdges.find((e) => !visitedNodes.has(e.to)) || outEdges[0];
       const nextNode = nodes.find((n) => n.id === nextEdge.to);
 
       if (!nextNode || visitedNodes.has(nextEdge.to)) {
-        addLog(`No further path — flow complete.`, "success");
+        addLog(`✅ No further path — flow complete.`, "success");
         break;
       }
 
-      // Animate the edge
       setActiveEdgeId(nextEdge.id);
       setVisitedEdgeIds((prev) => [...prev, nextEdge.id]);
-      await delay(400);
+      addLog(`→ Passing data to "${nextNode.label}"`, "edge");
+      await sleep(450);
       if (cancelRef.current) break;
       setActiveEdgeId(null);
 
@@ -93,30 +99,135 @@ export function useSimulation(nodes, edges) {
     if (!cancelRef.current) {
       setSimState("done");
       setActiveNodeId(null);
+      addLog(`🏁 Simulation complete. ${visitedNodes.size} nodes executed.`, "success");
     }
   }, [nodes, edges]);
 
-  return { simState, activeNodeId, activeEdgeId, visitedNodeIds, visitedEdgeIds, log, run, reset };
+  return {
+    simState, activeNodeId, activeEdgeId,
+    visitedNodeIds, visitedEdgeIds,
+    log, nodeData,
+    run, reset,
+  };
+}
+
+// ── Node processing — generates simulated output per type ────────────────────
+
+function generateTriggerPayload(node) {
+  const phrase = node.config?.voice_phrase || "new order";
+  return {
+    event: "voice_trigger",
+    phrase,
+    confidence: node.config?.confidence_threshold || 0.91,
+    timestamp: new Date().toISOString(),
+    session_id: `sess_${Math.random().toString(36).slice(2, 9)}`,
+    user_id: "usr_demo_001",
+  };
+}
+
+function processNode(node, ctx) {
+  switch (node.type) {
+    case "trigger":
+      return generateTriggerPayload(node);
+
+    case "llm": {
+      const model = node.config?.model || "gpt-4o-mini";
+      return {
+        llm_model: model,
+        llm_input: ctx.phrase || ctx.message || "User query",
+        llm_output: generateLLMOutput(node, ctx),
+        tokens_used: Math.floor(Math.random() * 300) + 80,
+        latency_ms: Math.floor(Math.random() * 800) + 200,
+      };
+    }
+
+    case "condition": {
+      const expr = node.config?.condition_expression || "inventory > 0";
+      const result = Math.random() > 0.35;
+      return {
+        condition: expr,
+        result,
+        branch: result
+          ? node.config?.true_label || "true"
+          : node.config?.false_label || "false",
+      };
+    }
+
+    case "action": {
+      const url = node.config?.endpoint_url || "https://api.example.com/action";
+      const method = node.config?.http_method || "POST";
+      return {
+        http_method: method,
+        endpoint: url,
+        status_code: 200,
+        response_body: { success: true, id: `rec_${Math.random().toString(36).slice(2, 8)}` },
+        latency_ms: Math.floor(Math.random() * 400) + 80,
+      };
+    }
+
+    case "response": {
+      const template = node.config?.response_template || "Your request has been processed.";
+      return {
+        message: template.replace(/\{\{(\w+)\}\}/g, (_, k) => ctx[k] || k),
+        voice_speed: node.config?.voice_speed || "normal",
+        emotion: node.config?.emotion || "friendly",
+        tts_chars: template.length,
+      };
+    }
+
+    case "end":
+      return {
+        status: "completed",
+        summary: node.config?.summary_message || "Workflow finished successfully.",
+        logged: node.config?.log_result !== "no",
+      };
+
+    default:
+      return { processed: true };
+  }
+}
+
+function generateLLMOutput(node, ctx) {
+  const schema = node.config?.output_schema;
+  if (schema) {
+    try {
+      const parsed = JSON.parse(schema);
+      const mock = {};
+      Object.entries(parsed).forEach(([k, v]) => {
+        mock[k] = v === "number" ? Math.floor(Math.random() * 100) : `mock_${k}`;
+      });
+      return mock;
+    } catch (_) {}
+  }
+  const examples = [
+    { intent: "create_order", entities: { product: "Widget A", qty: 3 }, confidence: 0.94 },
+    { intent: "check_status", entities: { order_id: "ORD-8821" }, confidence: 0.87 },
+    { intent: "schedule_meeting", entities: { date: "2026-05-10", attendees: 3 }, confidence: 0.91 },
+  ];
+  return examples[Math.floor(Math.random() * examples.length)];
 }
 
 function getStepDuration(type) {
-  const map = { trigger: 800, condition: 1000, llm: 1400, action: 1100, response: 900, end: 600 };
-  return map[type] || 800;
+  const map = { trigger: 700, condition: 900, llm: 1300, action: 1000, response: 800, end: 500 };
+  return map[type] || 750;
 }
 
 function getNodeLog(node) {
   const labels = {
     trigger: `⚡ Trigger fired: "${node.label}"`,
-    condition: `🔀 Evaluating condition: "${node.label}"`,
-    llm: `🤖 LLM processing: "${node.label}"${node.config?.model ? ` [${node.config.model}]` : ""}`,
-    action: `🔧 Executing action: "${node.label}"${node.config?.endpoint_url ? ` → ${node.config.endpoint_url}` : ""}`,
-    response: `💬 Generating response: "${node.label}"`,
-    end: `✅ End node reached: "${node.label}"`,
+    condition: `🔀 Evaluating: "${node.label}"`,
+    llm: `🤖 LLM call: "${node.label}"${node.config?.model ? ` [${node.config.model}]` : ""}`,
+    action: `🔧 Action: "${node.label}"${node.config?.endpoint_url ? ` → ${node.config.endpoint_url}` : ""}`,
+    response: `💬 Response: "${node.label}"`,
+    end: `⏹ End: "${node.label}"`,
   };
-  return labels[node.type] || `Processing "${node.label}"`;
+  return labels[node.type] || `▶ Processing "${node.label}"`;
 }
 
 function getLogType(type) {
-  const map = { trigger: "trigger", llm: "llm", action: "action", condition: "condition", response: "response", end: "success" };
+  const map = {
+    trigger: "trigger", llm: "llm", action: "action",
+    condition: "condition", response: "response", end: "success",
+  };
   return map[type] || "info";
 }

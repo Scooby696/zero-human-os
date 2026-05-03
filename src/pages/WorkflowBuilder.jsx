@@ -6,6 +6,7 @@ import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
 import WorkflowToolbar from "../components/workflow/WorkflowToolbar";
 import NodeConfigPanel from "../components/workflow/NodeConfigPanel";
 import SimulationLog from "../components/workflow/SimulationLog";
+import TestModePanel from "../components/workflow/TestModePanel";
 import { DEFAULT_WORKFLOWS } from "../components/workflow/workflowData";
 import { useSimulation } from "../hooks/useSimulation";
 
@@ -122,7 +123,15 @@ export default function WorkflowBuilder() {
             />
           )}
         </div>
-        {selectedNode && (
+        {(sim.simState === "running" || sim.simState === "done") && (
+          <TestModePanel
+            nodes={nodes}
+            nodeData={sim.nodeData}
+            simState={sim.simState}
+            onClose={sim.reset}
+          />
+        )}
+        {selectedNode && sim.simState === "idle" && (
           <NodeConfigPanel
             node={nodes.find((n) => n.id === selectedNode.id)}
             onUpdateNode={updateNode}
