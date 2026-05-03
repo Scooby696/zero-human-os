@@ -6,6 +6,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Home from './pages/Home';
+import ZHSVoiceButton from './components/voice/ZHSVoiceButton';
 import Dashboard from './pages/Dashboard';
 import DashboardAgents from './pages/DashboardAgents';
 import DashboardTools from './pages/DashboardTools';
@@ -40,18 +41,21 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/dashboard/agents" element={<DashboardAgents />} />
-      <Route path="/dashboard/tools" element={<DashboardTools />} />
-      <Route path="/audit" element={<Audit />} />
-      <Route path="/monetization" element={<Monetization />} />
-      <Route path="/docs" element={<AgentDocs />} />
-      <Route path="/tools/opensource" element={<OpenSourceTools />} />
-      <Route path="/crypto-architecture" element={<CryptoArchitecture />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/agents" element={<DashboardAgents />} />
+        <Route path="/dashboard/tools" element={<DashboardTools />} />
+        <Route path="/audit" element={<Audit />} />
+        <Route path="/monetization" element={<Monetization />} />
+        <Route path="/docs" element={<AgentDocs />} />
+        <Route path="/tools/opensource" element={<OpenSourceTools />} />
+        <Route path="/crypto-architecture" element={<CryptoArchitecture />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+      <ZHSVoiceButton />
+    </>
   );
 };
 
