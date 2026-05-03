@@ -6,6 +6,7 @@ export default function WorkflowCanvas({
   nodes, edges, selectedNode,
   onSelectNode, onUpdateNode, onDeleteNode, onAddEdge, onDeleteEdge,
   activeNodeId, activeEdgeId, visitedNodeIds = [], visitedEdgeIds = [],
+  breakpoints = new Set(), onToggleBreakpoint,
 }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
@@ -126,6 +127,8 @@ export default function WorkflowCanvas({
             onLabelChange={(label) => onUpdateNode(node.id, { label })}
             simActive={activeNodeId === node.id}
             simVisited={visitedNodeIds.includes(node.id)}
+            isBreakpoint={breakpoints.has(node.id)}
+            onToggleBreakpoint={() => onToggleBreakpoint?.(node.id)}
           />
         ))}
       </div>

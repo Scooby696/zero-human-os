@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FolderOpen, Trash2, Download, ChevronDown, Play, Square } from "lucide-react";
 import { DEFAULT_WORKFLOWS } from "./workflowData";
 
-export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, onClear, simState, onSimulate, onSimStop }) {
+export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, onClear, simState, onSimulate, onSimStop, onResume, isPaused }) {
   const [showTemplates, setShowTemplates] = useState(false);
 
   const exportJSON = () => {
@@ -51,8 +51,25 @@ export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, on
         Export
       </button>
 
-      {/* Simulate button */}
-      {simState === "running" ? (
+      {/* Simulate/Pause/Resume buttons */}
+      {isPaused ? (
+        <>
+          <button
+            onClick={onResume}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-400/10 border border-blue-400/20 text-blue-400 hover:bg-blue-400/20 transition-colors"
+          >
+            <Play className="w-3.5 h-3.5" />
+            Resume
+          </button>
+          <button
+            onClick={onSimStop}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-400/10 border border-red-400/20 text-red-400 hover:bg-red-400/20 transition-colors"
+          >
+            <Square className="w-3.5 h-3.5" />
+            Stop
+          </button>
+        </>
+      ) : simState === "running" ? (
         <button
           onClick={onSimStop}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-400/10 border border-red-400/20 text-red-400 hover:bg-red-400/20 transition-colors"

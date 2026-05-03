@@ -5,7 +5,7 @@ import { NODE_TYPES } from "./workflowData";
 export default function WorkflowNode({
   node, selected, connecting,
   onMouseDown, onDelete, onStartConnect, onLabelChange,
-  simActive, simVisited,
+  simActive, simVisited, isBreakpoint, onToggleBreakpoint,
 }) {
   const [editing, setEditing] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -48,6 +48,16 @@ export default function WorkflowNode({
         {simActive && (
           <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-yellow-400 animate-ping" />
         )}
+        {isBreakpoint && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleBreakpoint?.();
+            }}
+            className="absolute -top-2 -left-2 w-4 h-4 rounded-full bg-red-500 hover:bg-red-600 border-2 border-background shadow-lg transition-colors"
+            title="Click to remove breakpoint"
+          />
+        )}
         {/* Type badge */}
         <div className="flex items-center gap-1.5 mb-1">
           <span className="text-sm leading-none">{def.icon}</span>
@@ -79,6 +89,18 @@ export default function WorkflowNode({
       {/* Action buttons */}
       {(hovered || selected) && (
         <div className="absolute -top-7 left-0 flex gap-1">
+          <button
+            onMouseDown={(e) => { e.stopPropagation(); onToggleBreakpoint?.(); }}
+            title={isBreakpoint ? "Remove breakpoint" : "Set breakpoint (pause on this node)"}
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-colors border ${
+              isBreakpoint
+                ? "bg-red-500/20 border-red-500/40 text-red-400 hover:bg-red-500/30"
+                : "bg-card border-border/50 text-muted-foreground hover:text-red-400 hover:border-red-400/40"
+            }`}
+          >
+            <div className="w-2 h-2 rounded-full bg-current" />
+            {isBreakpoint ? "Remove" : "Breakpoint"}
+          </button>
           <button
             onMouseDown={(e) => { e.stopPropagation(); onStartConnect(); }}
             title="Connect to another node"

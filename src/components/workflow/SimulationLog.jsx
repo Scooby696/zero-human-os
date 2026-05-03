@@ -9,6 +9,7 @@ const TYPE_STYLES = {
   response: "text-green-400",
   success: "text-green-400 font-semibold",
   edge: "text-muted-foreground/60 italic",
+  breakpoint: "text-red-400 font-semibold",
   info: "text-muted-foreground",
 };
 

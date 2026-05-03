@@ -15,8 +15,21 @@ export default function WorkflowBuilder() {
   const [edges, setEdges] = useState(DEFAULT_WORKFLOWS[0].edges);
   const [selectedNode, setSelectedNode] = useState(null);
   const [workflowName, setWorkflowName] = useState(DEFAULT_WORKFLOWS[0].name);
+  const [breakpoints, setBreakpoints] = useState(new Set());
   const nextId = useRef(100);
   const sim = useSimulation(nodes, edges);
+
+  const toggleBreakpoint = useCallback((nodeId) => {
+    setBreakpoints((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  }, []);
 
   const addNode = useCallback((type) => {
     const id = `node-${nextId.current++}`;
@@ -92,8 +105,10 @@ export default function WorkflowBuilder() {
           onLoad={loadWorkflow}
           onClear={clearCanvas}
           simState={sim.simState}
-          onSimulate={sim.run}
+          onSimulate={() => sim.run(breakpoints)}
           onSimStop={sim.reset}
+          onResume={sim.resume}
+          isPaused={sim.simState === "paused"}
         />
       </header>
 
@@ -114,6 +129,8 @@ export default function WorkflowBuilder() {
             activeEdgeId={sim.activeEdgeId}
             visitedNodeIds={sim.visitedNodeIds}
             visitedEdgeIds={sim.visitedEdgeIds}
+            breakpoints={breakpoints}
+            onToggleBreakpoint={toggleBreakpoint}
           />
           {(sim.simState === "running" || sim.simState === "done") && (
             <SimulationLog

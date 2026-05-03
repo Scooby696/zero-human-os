@@ -1,14 +1,16 @@
 import { useState, useCallback, useRef } from "react";
 
 export function useSimulation(nodes, edges) {
-  const [simState, setSimState] = useState("idle"); // idle | running | done
+  const [simState, setSimState] = useState("idle"); // idle | running | paused | done
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [activeEdgeId, setActiveEdgeId] = useState(null);
   const [visitedNodeIds, setVisitedNodeIds] = useState([]);
   const [visitedEdgeIds, setVisitedEdgeIds] = useState([]);
   const [log, setLog] = useState([]);
   const [nodeData, setNodeData] = useState({}); // { [nodeId]: { input, output } }
+  const [pausedNodeId, setPausedNodeId] = useState(null);
   const cancelRef = useRef(false);
+  const pauseRef = useRef(false);
 
   const sleep = (ms) =>
     new Promise((resolve) => {
@@ -28,11 +30,19 @@ export function useSimulation(nodes, edges) {
     setVisitedEdgeIds([]);
     setLog([]);
     setNodeData({});
+    setPausedNodeId(null);
   }, []);
 
-  const run = useCallback(async () => {
+  const resume = useCallback(() => {
+    pauseRef.current = false;
+    setSimState("running");
+    setPausedNodeId(null);
+  }, []);
+
+  const run = useCallback(async (breakpoints = new Set()) => {
     if (nodes.length === 0) return;
     cancelRef.current = false;
+    pauseRef.current = false;
     setSimState("running");
     setActiveNodeId(null);
     setActiveEdgeId(null);
@@ -40,6 +50,7 @@ export function useSimulation(nodes, edges) {
     setVisitedEdgeIds([]);
     setLog([]);
     setNodeData({});
+    setPausedNodeId(null);
 
     const start = nodes.find((n) => n.type === "trigger") || nodes[0];
     addLog(`🚀 Test Mode started — entry: "${start.label}"`, "info");
@@ -70,6 +81,24 @@ export function useSimulation(nodes, edges) {
       }));
 
       setActiveNodeId(null);
+
+      // Check for breakpoint
+      if (breakpoints.has(current.id)) {
+        addLog(`⏸ Breakpoint hit on "${current.label}" — paused`, "breakpoint");
+        setSimState("paused");
+        setPausedNodeId(current.id);
+        pauseRef.current = true;
+        // Wait for resume
+        await new Promise((resolve) => {
+          const checkResume = setInterval(() => {
+            if (!pauseRef.current) {
+              clearInterval(checkResume);
+              resolve();
+            }
+          }, 100);
+        });
+        if (cancelRef.current) break;
+      }
 
       const outEdges = edges.filter((e) => e.from === current.id);
       if (outEdges.length === 0) {
@@ -106,8 +135,8 @@ export function useSimulation(nodes, edges) {
   return {
     simState, activeNodeId, activeEdgeId,
     visitedNodeIds, visitedEdgeIds,
-    log, nodeData,
-    run, reset,
+    log, nodeData, pausedNodeId,
+    run, reset, resume,
   };
 }
 
