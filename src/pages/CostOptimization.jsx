@@ -4,6 +4,7 @@ import { budgetManager } from '@/utils/costBudgetManager';
 import { profiler } from '@/utils/executionProfiler';
 import { dlq } from '@/utils/deadLetterQueue';
 import { deduplicator } from '@/utils/requestDeduplicator';
+import SpendPredictionDashboard from '@/components/workflow/SpendPredictionDashboard';
 
 function OptimizationCard({ icon: Icon, title, value, subtext, color = 'text-blue-400' }) {
   return (
@@ -107,7 +108,7 @@ export default function CostOptimization() {
 
         {/* Tabs */}
         <div className="flex gap-2 border-b border-border/30">
-          {['overview', 'expensive', 'slow', 'dlq', 'tips'].map((t) => (
+          {['overview', 'predict', 'expensive', 'slow', 'dlq', 'tips'].map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -115,13 +116,17 @@ export default function CostOptimization() {
                 tab === t ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {t === 'dlq' ? 'Dead Letter Queue' : t.charAt(0).toUpperCase() + t.slice(1)}
+              {t === 'dlq' ? 'Dead Letter Queue' : t === 'predict' ? 'Spend Prediction' : t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
         </div>
 
         {/* Tab Content */}
         <div className="space-y-4">
+          {tab === 'predict' && (
+            <SpendPredictionDashboard />
+          )}
+
           {tab === 'overview' && (
             <div className="grid md:grid-cols-2 gap-4">
               <MetricChart
