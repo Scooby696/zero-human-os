@@ -61,6 +61,16 @@ const CONFIG_FIELDS = {
     { key: "summary_message", label: "Completion Message (optional)", type: "text", placeholder: "Flow completed successfully." },
     { key: "log_result", label: "Log Result", type: "select", options: ["yes", "no"] },
   ],
+  error_handler: [
+    { key: "error_types", label: "Catch Error Types", type: "text", placeholder: "timeout, 404, 500, all (comma-separated)" },
+    { key: "fallback_action", label: "Fallback Action", type: "select", options: ["retry", "skip", "alert", "custom_response"] },
+    { key: "retry_count", label: "Retry Count", type: "number", placeholder: "3" },
+    { key: "retry_delay_ms", label: "Retry Delay (ms)", type: "number", placeholder: "1000" },
+    { key: "alert_email", label: "Alert Email (optional)", type: "text", placeholder: "admin@example.com" },
+    { key: "alert_slack_webhook", label: "Slack Webhook URL (or select secret)", type: "secret", placeholder: "https://hooks.slack.com/..." },
+    { key: "fallback_response", label: "Fallback Response Template", type: "textarea", placeholder: 'e.g. "Service temporarily unavailable, retrying..."' },
+    { key: "escalation_threshold", label: "Escalation After N Failures", type: "number", placeholder: "5" },
+  ],
 };
 
 function Field({ field, value, onChange }) {

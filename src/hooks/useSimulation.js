@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { errorHandler } from "../utils/errorHandler";
 
 export function useSimulation(nodes, edges) {
   const [simState, setSimState] = useState("idle"); // idle | running | paused | done
@@ -74,8 +75,42 @@ export function useSimulation(nodes, edges) {
       await sleep(stepMs);
       if (cancelRef.current) break;
 
-      const output = processNode(current, context, variables);
-      context = { ...context, ...output };
+      let output;
+      let nodeError = null;
+      try {
+        output = processNode(current, context, variables);
+        context = { ...context, ...output };
+      } catch (error) {
+        nodeError = error;
+        addLog(`❌ Error in "${current.label}": ${error.message}`, "error");
+        
+        // Look for error handler nodes connected to this node
+        const errorHandlers = edges.filter((e) => e.from === current.id).map((e) => nodes.find((n) => n.id === e.to)).filter((n) => n?.type === "error_handler");
+        
+        if (errorHandlers.length > 0) {
+          const handler = errorHandlers[0];
+          const handlerResult = errorHandler.handleError(
+            handler.id,
+            error,
+            handler.config || {},
+            { nodeName: handler.label }
+          );
+          
+          if (handlerResult.handled) {
+            addLog(`🛡️ Error handled: ${handlerResult.action}`, "error_handler");
+            if (handlerResult.alerts) {
+              handlerResult.alerts.forEach((alert) => {
+                addLog(`📧 Alert sent via ${alert.type}`, "info");
+              });
+            }
+            output = handlerResult.fallbackResult || { error_handled: true };
+          }
+        } else if (!current.config?.continue_on_error) {
+          // No error handler, stop execution
+          addLog(`❌ Fatal error — no handler defined`, "error");
+          break;
+        }
+      }
 
       // Handle variable setting
       if (current.type === "variable") {
@@ -174,6 +209,18 @@ function generateTriggerPayload(node) {
 }
 
 function processNode(node, ctx, variables = {}) {
+  // Simulate random failures for testing error handlers (20% chance)
+  if (node.type === "action" || node.type === "llm") {
+    if (Math.random() < 0.15) {
+      const errors = [
+        { message: "Connection timeout", code: "timeout" },
+        { message: "API rate limit exceeded", code: "429" },
+        { message: "Service unavailable", code: "503" },
+      ];
+      throw errors[Math.floor(Math.random() * errors.length)];
+    }
+  }
+
   switch (node.type) {
     case "variable": {
       const varValue = node.config?.variable_value || "undefined";
@@ -282,6 +329,12 @@ function processNode(node, ctx, variables = {}) {
         status: "completed",
         summary: node.config?.summary_message || "Workflow finished successfully.",
         logged: node.config?.log_result !== "no",
+      };
+
+    case "error_handler":
+      return {
+        handler_type: node.config?.fallback_action || "alert",
+        status: "ready",
       };
 
     default:

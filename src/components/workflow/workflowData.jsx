@@ -69,6 +69,13 @@ export const NODE_TYPES = {
     icon: "⏹",
     description: "End of the workflow",
   },
+  error_handler: {
+    label: "Error Handler",
+    color: "bg-orange-500/20 border-orange-500/50 text-orange-400",
+    dot: "bg-orange-400",
+    icon: "⚠",
+    description: "Catch and handle errors from upstream nodes",
+  },
 };
 
 export const DEFAULT_WORKFLOWS = [
