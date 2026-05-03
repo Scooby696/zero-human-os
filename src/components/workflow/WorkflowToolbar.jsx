@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Save, FolderOpen, Trash2, Download, ChevronDown } from "lucide-react";
+import { FolderOpen, Trash2, Download, ChevronDown, Play, Square } from "lucide-react";
 import { DEFAULT_WORKFLOWS } from "./workflowData";
 
-export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, onClear }) {
+export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, onClear, simState, onSimulate, onSimStop }) {
   const [showTemplates, setShowTemplates] = useState(false);
 
   const exportJSON = () => {
@@ -50,6 +50,26 @@ export default function WorkflowToolbar({ nodes, edges, workflowName, onLoad, on
         <Download className="w-3.5 h-3.5" />
         Export
       </button>
+
+      {/* Simulate button */}
+      {simState === "running" ? (
+        <button
+          onClick={onSimStop}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-400/10 border border-red-400/20 text-red-400 hover:bg-red-400/20 transition-colors"
+        >
+          <Square className="w-3.5 h-3.5" />
+          Stop
+        </button>
+      ) : (
+        <button
+          onClick={onSimulate}
+          disabled={nodes.length === 0}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-400/10 border border-green-400/20 text-green-400 hover:bg-green-400/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Play className="w-3.5 h-3.5" />
+          Simulate
+        </button>
+      )}
 
       <button
         onClick={onClear}

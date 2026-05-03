@@ -5,6 +5,7 @@ import { NODE_TYPES } from "./workflowData";
 export default function WorkflowNode({
   node, selected, connecting,
   onMouseDown, onDelete, onStartConnect, onLabelChange,
+  simActive, simVisited,
 }) {
   const [editing, setEditing] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -40,8 +41,13 @@ export default function WorkflowNode({
           ${def.color}
           ${selected ? "ring-2 ring-white/40 scale-105 shadow-xl" : ""}
           ${connecting ? "ring-2 ring-primary scale-105" : ""}
+          ${simActive ? "ring-4 ring-yellow-400 scale-110 shadow-yellow-400/40 shadow-2xl" : ""}
+          ${simVisited && !simActive ? "opacity-70 brightness-75" : ""}
         `}
       >
+        {simActive && (
+          <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-yellow-400 animate-ping" />
+        )}
         {/* Type badge */}
         <div className="flex items-center gap-1.5 mb-1">
           <span className="text-sm leading-none">{def.icon}</span>

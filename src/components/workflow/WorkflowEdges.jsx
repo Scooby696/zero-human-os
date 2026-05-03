@@ -6,24 +6,31 @@ function getBezierPath(x1, y1, x2, y2) {
   return `M ${x1} ${y1} C ${x1 + cx} ${y1}, ${x2 - cx} ${y2}, ${x2} ${y2}`;
 }
 
-function Edge({ edge, nodes, onDeleteEdge }) {
+function Edge({ edge, nodes, onDeleteEdge, isActive, isVisited }) {
   const [hovered, setHovered] = useState(false);
   const from = nodes.find((n) => n.id === edge.from);
   const to = nodes.find((n) => n.id === edge.to);
   if (!from || !to) return null;
 
-  const x1 = from.x + 176; // right dot
+  const x1 = from.x + 176;
   const y1 = from.y + 24;
-  const x2 = to.x - 7;     // left dot
+  const x2 = to.x - 7;
   const y2 = to.y + 24;
 
   const path = getBezierPath(x1, y1, x2, y2);
   const midX = (x1 + x2) / 2;
   const midY = (y1 + y2) / 2;
 
+  const strokeColor = hovered
+    ? "hsl(var(--destructive))"
+    : isActive
+    ? "#facc15"
+    : isVisited
+    ? "hsl(var(--primary)/0.9)"
+    : "hsl(var(--primary)/0.4)";
+
   return (
     <g>
-      {/* Wider invisible hit area */}
       <path
         d={path}
         fill="none"
@@ -33,18 +40,16 @@ function Edge({ edge, nodes, onDeleteEdge }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       />
-      {/* Visible path */}
       <path
         d={path}
         fill="none"
-        stroke={hovered ? "hsl(var(--destructive))" : "hsl(var(--primary)/0.5)"}
-        strokeWidth={hovered ? 2.5 : 1.5}
-        strokeDasharray={hovered ? "none" : "none"}
+        stroke={strokeColor}
+        strokeWidth={isActive ? 3 : isVisited ? 2.5 : hovered ? 2.5 : 1.5}
+        strokeDasharray={isActive ? "8 4" : "none"}
         markerEnd="url(#arrow)"
-        style={{ pointerEvents: "none", transition: "stroke 0.15s" }}
+        style={{ pointerEvents: "none", transition: "stroke 0.2s, stroke-width 0.2s" }}
       />
-      {/* Delete button on hover */}
-      {hovered && (
+      {hovered && !isActive && (
         <g
           transform={`translate(${midX}, ${midY})`}
           style={{ cursor: "pointer", pointerEvents: "all" }}
@@ -60,7 +65,7 @@ function Edge({ edge, nodes, onDeleteEdge }) {
   );
 }
 
-export default function WorkflowEdges({ edges, nodes, onDeleteEdge }) {
+export default function WorkflowEdges({ edges, nodes, onDeleteEdge, activeEdgeId, visitedEdgeIds = [] }) {
   return (
     <>
       <defs>
@@ -69,7 +74,14 @@ export default function WorkflowEdges({ edges, nodes, onDeleteEdge }) {
         </marker>
       </defs>
       {edges.map((edge) => (
-        <Edge key={edge.id} edge={edge} nodes={nodes} onDeleteEdge={onDeleteEdge} />
+        <Edge
+          key={edge.id}
+          edge={edge}
+          nodes={nodes}
+          onDeleteEdge={onDeleteEdge}
+          isActive={activeEdgeId === edge.id}
+          isVisited={visitedEdgeIds.includes(edge.id)}
+        />
       ))}
     </>
   );

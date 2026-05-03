@@ -5,6 +5,7 @@ import WorkflowEdges from "./WorkflowEdges";
 export default function WorkflowCanvas({
   nodes, edges, selectedNode,
   onSelectNode, onUpdateNode, onDeleteNode, onAddEdge, onDeleteEdge,
+  activeNodeId, activeEdgeId, visitedNodeIds = [], visitedEdgeIds = [],
 }) {
   const svgRef = useRef(null);
   const containerRef = useRef(null);
@@ -94,6 +95,8 @@ export default function WorkflowCanvas({
             edges={edges}
             nodes={nodes}
             onDeleteEdge={onDeleteEdge}
+            activeEdgeId={activeEdgeId}
+            visitedEdgeIds={visitedEdgeIds}
           />
           {/* Live connecting line */}
           {connecting && (() => {
@@ -121,6 +124,8 @@ export default function WorkflowCanvas({
             onDelete={() => onDeleteNode(node.id)}
             onStartConnect={() => setConnecting(connecting === node.id ? null : node.id)}
             onLabelChange={(label) => onUpdateNode(node.id, { label })}
+            simActive={activeNodeId === node.id}
+            simVisited={visitedNodeIds.includes(node.id)}
           />
         ))}
       </div>

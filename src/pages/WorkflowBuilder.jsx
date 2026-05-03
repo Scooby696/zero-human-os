@@ -5,7 +5,9 @@ import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import WorkflowSidebar from "../components/workflow/WorkflowSidebar";
 import WorkflowToolbar from "../components/workflow/WorkflowToolbar";
 import NodeConfigPanel from "../components/workflow/NodeConfigPanel";
+import SimulationLog from "../components/workflow/SimulationLog";
 import { DEFAULT_WORKFLOWS } from "../components/workflow/workflowData";
+import { useSimulation } from "../hooks/useSimulation";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -13,6 +15,7 @@ export default function WorkflowBuilder() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [workflowName, setWorkflowName] = useState(DEFAULT_WORKFLOWS[0].name);
   const nextId = useRef(100);
+  const sim = useSimulation(nodes, edges);
 
   const addNode = useCallback((type) => {
     const id = `node-${nextId.current++}`;
@@ -87,22 +90,38 @@ export default function WorkflowBuilder() {
           workflowName={workflowName}
           onLoad={loadWorkflow}
           onClear={clearCanvas}
+          simState={sim.simState}
+          onSimulate={sim.run}
+          onSimStop={sim.reset}
         />
       </header>
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
         <WorkflowSidebar onAddNode={addNode} />
-        <WorkflowCanvas
-          nodes={nodes}
-          edges={edges}
-          selectedNode={selectedNode}
-          onSelectNode={setSelectedNode}
-          onUpdateNode={updateNode}
-          onDeleteNode={deleteNode}
-          onAddEdge={addEdge}
-          onDeleteEdge={deleteEdge}
-        />
+        <div className="flex-1 relative overflow-hidden">
+          <WorkflowCanvas
+            nodes={nodes}
+            edges={edges}
+            selectedNode={selectedNode}
+            onSelectNode={setSelectedNode}
+            onUpdateNode={updateNode}
+            onDeleteNode={deleteNode}
+            onAddEdge={addEdge}
+            onDeleteEdge={deleteEdge}
+            activeNodeId={sim.activeNodeId}
+            activeEdgeId={sim.activeEdgeId}
+            visitedNodeIds={sim.visitedNodeIds}
+            visitedEdgeIds={sim.visitedEdgeIds}
+          />
+          {(sim.simState === "running" || sim.simState === "done") && (
+            <SimulationLog
+              log={sim.log}
+              simState={sim.simState}
+              onClose={sim.reset}
+            />
+          )}
+        </div>
         {selectedNode && (
           <NodeConfigPanel
             node={nodes.find((n) => n.id === selectedNode.id)}
