@@ -6,6 +6,7 @@ export default function WorkflowNode({
   node, selected, connecting,
   onMouseDown, onDelete, onStartConnect, onLabelChange,
   simActive, simVisited, isBreakpoint, onToggleBreakpoint,
+  isInvalid = false,
 }) {
   const [editing, setEditing] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -38,13 +39,18 @@ export default function WorkflowNode({
     >
       <div
         className={`relative w-44 rounded-xl border-2 px-3 py-2.5 shadow-lg transition-all cursor-move
-          ${def.color}
+          ${isInvalid ? "border-red-500/80 bg-red-500/10" : def.color}
           ${selected ? "ring-2 ring-white/40 scale-105 shadow-xl" : ""}
           ${connecting ? "ring-2 ring-primary scale-105" : ""}
           ${simActive ? "ring-4 ring-yellow-400 scale-110 shadow-yellow-400/40 shadow-2xl" : ""}
           ${simVisited && !simActive ? "opacity-70 brightness-75" : ""}
         `}
       >
+        {isInvalid && (
+          <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-red-500 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-white">!</span>
+          </span>
+        )}
         {simActive && (
           <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-yellow-400 animate-ping" />
         )}

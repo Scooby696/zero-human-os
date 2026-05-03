@@ -9,9 +9,11 @@ import SimulationLog from "../components/workflow/SimulationLog";
 import TestModePanel from "../components/workflow/TestModePanel";
 import WorkflowTemplateLibraryV2 from "../components/workflow/WorkflowTemplateLibraryV2";
 import SaveTemplateModal from "../components/workflow/SaveTemplateModal";
+import ValidationPanel from "../components/workflow/ValidationPanel";
 import { DEFAULT_WORKFLOWS } from "../components/workflow/workflowData";
 import { useSimulation } from "../hooks/useSimulation";
 import { useTemplateManager } from "../hooks/useTemplateManager";
+import { validateWorkflow } from "../utils/workflowValidator";
 
 export default function WorkflowBuilder() {
   const [nodes, setNodes] = useState(DEFAULT_WORKFLOWS[0].nodes);
@@ -21,6 +23,8 @@ export default function WorkflowBuilder() {
   const [breakpoints, setBreakpoints] = useState(new Set());
   const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [ignoreValidation, setIgnoreValidation] = useState(false);
   const nextId = useRef(100);
   const sim = useSimulation(nodes, edges);
   const templates = useTemplateManager();
@@ -118,6 +122,17 @@ export default function WorkflowBuilder() {
     e.dataTransfer.setData("template", JSON.stringify(template));
   };
 
+  const handleSimulate = () => {
+    const errors = validateWorkflow(nodes, edges);
+    if (errors.length > 0 && !ignoreValidation) {
+      setValidationErrors(errors);
+      return;
+    }
+    sim.run(breakpoints);
+  };
+
+  const invalidNodeIds = new Set(validationErrors.filter((e) => e.nodeId).map((e) => e.nodeId));
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
@@ -161,7 +176,7 @@ export default function WorkflowBuilder() {
           onLoad={loadWorkflow}
           onClear={clearCanvas}
           simState={sim.simState}
-          onSimulate={() => sim.run(breakpoints)}
+          onSimulate={handleSimulate}
           onSimStop={sim.reset}
           onResume={sim.resume}
           isPaused={sim.simState === "paused"}
@@ -201,6 +216,7 @@ export default function WorkflowBuilder() {
             visitedEdgeIds={sim.visitedEdgeIds}
             breakpoints={breakpoints}
             onToggleBreakpoint={toggleBreakpoint}
+            invalidNodeIds={invalidNodeIds}
           />
           {(sim.simState === "running" || sim.simState === "done") && (
             <SimulationLog
@@ -228,6 +244,17 @@ export default function WorkflowBuilder() {
           />
         )}
       </div>
+
+      <ValidationPanel
+        errors={validationErrors}
+        onClose={() => setValidationErrors([])}
+        onIgnore={() => {
+          setIgnoreValidation(true);
+          setValidationErrors([]);
+          sim.run(breakpoints);
+        }}
+        canIgnore={validationErrors.filter((e) => !["no_trigger", "no_end"].includes(e.type)).length > 0}
+      />
     </div>
   );
 }
