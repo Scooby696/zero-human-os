@@ -6,63 +6,50 @@
       "type": "string",
       "description": "Associated wallet ID"
     },
-    "transactionHash": {
+    "stripeTransactionId": {
       "type": "string",
-      "description": "Circle transaction ID"
+      "description": "Stripe transaction/payment ID"
     },
     "type": {
       "type": "string",
       "enum": [
-        "transfer",
-        "deposit",
-        "withdrawal"
+        "charge",
+        "refund",
+        "subscription_payment"
       ],
       "description": "Transaction type"
     },
-    "token": {
-      "type": "string",
-      "description": "Token symbol (USDC, EURC, etc)"
-    },
     "amount": {
       "type": "number",
-      "description": "Transaction amount"
+      "description": "Transaction amount in cents"
     },
-    "fromAddress": {
+    "currency": {
       "type": "string",
-      "description": "Source address"
+      "description": "Currency code (usd, eur, gbp)"
     },
-    "toAddress": {
+    "description": {
       "type": "string",
-      "description": "Destination address"
-    },
-    "network": {
-      "type": "string",
-      "description": "Blockchain network (polygon, ethereum, etc)"
+      "description": "Transaction description"
     },
     "status": {
       "type": "string",
       "enum": [
+        "succeeded",
         "pending",
-        "completed",
         "failed"
       ],
-      "default": "pending",
       "description": "Transaction status"
-    },
-    "fee": {
-      "type": "number",
-      "description": "Transaction fee in USD"
     },
     "metadata": {
       "type": "string",
-      "description": "JSON with additional transaction details"
+      "description": "JSON with additional details"
     }
   },
   "required": [
     "walletId",
-    "token",
+    "stripeTransactionId",
+    "type",
     "amount",
-    "toAddress",
-    "network"
+    "currency"
   ]
 }

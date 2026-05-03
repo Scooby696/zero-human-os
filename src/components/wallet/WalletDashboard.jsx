@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import {
   Wallet,
-  Send,
+  CreditCard,
   Eye,
   EyeOff,
   Copy,
@@ -16,15 +16,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-const SUPPORTED_TOKENS = [
-  { symbol: 'USDC', name: 'USD Coin', icon: '$', color: 'text-blue-400' },
-  { symbol: 'EURC', name: 'Euro Coin', icon: '€', color: 'text-green-400' },
-];
-
-const SUPPORTED_NETWORKS = [
-  { id: 'polygon', name: 'Polygon', icon: '◆' },
-  { id: 'ethereum', name: 'Ethereum', icon: 'Ξ' },
-  { id: 'solana', name: 'Solana', icon: '◎' },
+const SUPPORTED_CURRENCIES = [
+  { code: 'usd', name: 'US Dollar', symbol: '$', color: 'text-blue-400' },
+  { code: 'eur', name: 'Euro', symbol: '€', color: 'text-green-400' },
+  { code: 'gbp', name: 'British Pound', symbol: '£', color: 'text-amber-400' },
 ];
 
 export default function WalletDashboard() {
@@ -33,13 +28,12 @@ export default function WalletDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddress, setShowAddress] = useState(false);
   const [transferModal, setTransferModal] = useState(false);
-  const [transferData, setTransferData] = useState({
-    token: 'USDC',
+  const [chargeData, setChargeData] = useState({
     amount: '',
-    toAddress: '',
-    network: 'polygon',
+    currency: 'usd',
+    description: '',
   });
-  const [transferring, setTransferring] = useState(false);
+  const [charging, setCharging] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -49,7 +43,7 @@ export default function WalletDashboard() {
         setUser(currentUser);
 
         // Fetch or create wallet
-        const res = await base44.functions.invoke('circleWallet', {
+        const res = await base44.functions.invoke('stripeWallet', {
           action: 'getWallet',
           email: currentUser.email,
         });
@@ -72,7 +66,7 @@ export default function WalletDashboard() {
 
   const createWallet = async () => {
     try {
-      const res = await base44.functions.invoke('circleWallet', {
+      const res = await base44.functions.invoke('stripeWallet', {
         action: 'createWallet',
         walletType: 'email',
       });
@@ -85,7 +79,7 @@ export default function WalletDashboard() {
 
   const loadTransactions = async () => {
     try {
-      const res = await base44.functions.invoke('circleWallet', {
+      const res = await base44.functions.invoke('stripeWallet', {
         action: 'getTransactions',
       });
       setTransactions(res.data.transactions);
@@ -94,30 +88,29 @@ export default function WalletDashboard() {
     }
   };
 
-  const handleTransfer = async () => {
-    if (!transferData.amount || !transferData.toAddress) {
+  const handleCharge = async () => {
+    if (!chargeData.amount || !chargeData.description) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    setTransferring(true);
+    setCharging(true);
     try {
-      const res = await base44.functions.invoke('circleWallet', {
-        action: 'transfer',
-        token: transferData.token,
-        amount: parseFloat(transferData.amount),
-        toAddress: transferData.toAddress,
-        network: transferData.network,
+      const res = await base44.functions.invoke('stripeWallet', {
+        action: 'charge',
+        amount: parseFloat(chargeData.amount),
+        currency: chargeData.currency,
+        description: chargeData.description,
       });
 
-      toast.success(`Transfer initiated: ${res.data.transaction.amount} ${res.data.transaction.token}`);
+      toast.success(`Charge successful: ${res.data.transaction.amount} ${res.data.transaction.currency.toUpperCase()}`);
       setTransferModal(false);
-      setTransferData({ token: 'USDC', amount: '', toAddress: '', network: 'polygon' });
+      setChargeData({ amount: '', currency: 'usd', description: '' });
       await loadTransactions();
     } catch (error) {
-      toast.error(`Transfer failed: ${error.message}`);
+      toast.error(`Charge failed: ${error.message}`);
     } finally {
-      setTransferring(false);
+      setCharging(false);
     }
   };
 
@@ -149,8 +142,8 @@ export default function WalletDashboard() {
                 <Wallet className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-foreground">Multi-Currency Wallet</h2>
-                <p className="text-sm text-muted-foreground">Stablecoin transfers powered by Circle</p>
+                <h2 className="text-xl font-bold text-foreground">Billing Wallet</h2>
+                <p className="text-sm text-muted-foreground">Stripe payments & stablecoin billing</p>
               </div>
             </div>
             <Button
@@ -195,29 +188,15 @@ export default function WalletDashboard() {
             </div>
           </div>
 
-          {/* Balances */}
-          {wallet.balances && wallet.balances.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {SUPPORTED_TOKENS.map((token) => {
-                const balance = wallet.balances.find(
-                  (b) => b.currency === token.symbol
-                );
-                return (
-                  <div
-                    key={token.symbol}
-                    className="p-4 rounded-lg bg-background/50 border border-border/30 space-y-2"
-                  >
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                      {token.name}
-                    </p>
-                    <p className={`text-2xl font-bold ${token.color}`}>
-                      {balance ? balance.amount : '0.00'} {token.symbol}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* Balance */}
+          <div className="p-4 rounded-lg bg-background/50 border border-border/30 space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+              Account Balance
+            </p>
+            <p className="text-3xl font-bold text-primary">
+              {(wallet.balance / 100).toFixed(2)} {wallet.currency.toUpperCase()}
+            </p>
+          </div>
 
           {/* Action Buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -225,24 +204,24 @@ export default function WalletDashboard() {
               onClick={() => setTransferModal(true)}
               className="gap-2 bg-primary hover:bg-primary/90"
             >
-              <Send className="w-4 h-4" />
-              Send Stablecoin
+              <CreditCard className="w-4 h-4" />
+              Add Funds
             </Button>
             <Button
               variant="outline"
               className="gap-2"
               onClick={() => {
-                copyToClipboard(wallet.walletAddress);
+                copyToClipboard(wallet.stripeCustomerId);
               }}
             >
-              <Plus className="w-4 h-4" />
-              Receive Funds
+              <Copy className="w-4 h-4" />
+              Copy Customer ID
             </Button>
           </div>
         </motion.div>
       )}
 
-      {/* Transfer Modal */}
+      {/* Charge Modal */}
       {transferModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
@@ -250,21 +229,21 @@ export default function WalletDashboard() {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-card border border-border/50 rounded-2xl p-6 max-w-md w-full space-y-4"
           >
-            <h3 className="text-xl font-bold text-foreground">Send Stablecoin</h3>
+            <h3 className="text-xl font-bold text-foreground">Add Funds</h3>
 
-            {/* Token Select */}
+            {/* Currency Select */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Token</label>
+              <label className="text-sm font-medium text-foreground">Currency</label>
               <select
-                value={transferData.token}
+                value={chargeData.currency}
                 onChange={(e) =>
-                  setTransferData({ ...transferData, token: e.target.value })
+                  setChargeData({ ...chargeData, currency: e.target.value })
                 }
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border/50 text-foreground focus:outline-none focus:border-primary/50"
               >
-                {SUPPORTED_TOKENS.map((t) => (
-                  <option key={t.symbol} value={t.symbol}>
-                    {t.name} ({t.symbol})
+                {SUPPORTED_CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name} ({c.symbol})
                   </option>
                 ))}
               </select>
@@ -276,45 +255,25 @@ export default function WalletDashboard() {
               <input
                 type="number"
                 placeholder="0.00"
-                value={transferData.amount}
+                value={chargeData.amount}
                 onChange={(e) =>
-                  setTransferData({ ...transferData, amount: e.target.value })
+                  setChargeData({ ...chargeData, amount: e.target.value })
                 }
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50"
               />
             </div>
 
-            {/* Network */}
+            {/* Description */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Network</label>
-              <select
-                value={transferData.network}
-                onChange={(e) =>
-                  setTransferData({ ...transferData, network: e.target.value })
-                }
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border/50 text-foreground focus:outline-none focus:border-primary/50"
-              >
-                {SUPPORTED_NETWORKS.map((n) => (
-                  <option key={n.id} value={n.id}>
-                    {n.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Recipient Address */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Recipient Address
-              </label>
+              <label className="text-sm font-medium text-foreground">Description</label>
               <input
                 type="text"
-                placeholder="0x..."
-                value={transferData.toAddress}
+                placeholder="What is this for?"
+                value={chargeData.description}
                 onChange={(e) =>
-                  setTransferData({ ...transferData, toAddress: e.target.value })
+                  setChargeData({ ...chargeData, description: e.target.value })
                 }
-                className="w-full px-3 py-2 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 font-mono text-sm"
+                className="w-full px-3 py-2 rounded-lg bg-background border border-border/50 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50"
               />
             </div>
 
@@ -328,19 +287,19 @@ export default function WalletDashboard() {
                 Cancel
               </Button>
               <Button
-                onClick={handleTransfer}
-                disabled={transferring}
+                onClick={handleCharge}
+                disabled={charging}
                 className="flex-1 gap-2"
               >
-                {transferring ? (
+                {charging ? (
                   <>
                     <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     Processing...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4" />
-                    Send
+                    <CreditCard className="w-4 h-4" />
+                    Add Funds
                   </>
                 )}
               </Button>
@@ -361,7 +320,7 @@ export default function WalletDashboard() {
           <div className="space-y-2">
             {transactions.map((tx) => {
               const statusIcon =
-                tx.status === 'completed' ? (
+                tx.status === 'succeeded' ? (
                   <CheckCircle className="w-5 h-5 text-green-400" />
                 ) : tx.status === 'failed' ? (
                   <AlertCircle className="w-5 h-5 text-red-400" />
@@ -378,10 +337,10 @@ export default function WalletDashboard() {
                     {statusIcon}
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground">
-                        {tx.amount} {tx.token}
+                        {tx.amount} {tx.currency.toUpperCase()}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {tx.network} • {new Date(tx.createdDate).toLocaleDateString()}
+                        {tx.description || 'Transaction'} • {new Date(tx.createdDate).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

@@ -10,13 +10,9 @@
       "type": "string",
       "description": "Associated user ID"
     },
-    "circleWalletId": {
+    "stripeCustomerId": {
       "type": "string",
-      "description": "Circle WaaS wallet ID"
-    },
-    "walletAddress": {
-      "type": "string",
-      "description": "Blockchain wallet address"
+      "description": "Stripe customer ID"
     },
     "walletType": {
       "type": "string",
@@ -26,13 +22,15 @@
       ],
       "description": "Wallet type (email-based or key-based)"
     },
-    "balances": {
-      "type": "string",
-      "description": "JSON object with token balances {USDC: 100, EURC: 50, etc}"
+    "balance": {
+      "type": "number",
+      "default": 0,
+      "description": "Account balance in USD"
     },
-    "supportedNetworks": {
+    "currency": {
       "type": "string",
-      "description": "JSON array of supported networks [polygon, ethereum, etc]"
+      "default": "usd",
+      "description": "Currency (usd, eur, gbp)"
     },
     "isActive": {
       "type": "boolean",
@@ -42,6 +40,6 @@
   },
   "required": [
     "email",
-    "circleWalletId"
+    "stripeCustomerId"
   ]
 }
