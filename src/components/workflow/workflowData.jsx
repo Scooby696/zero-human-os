@@ -1,0 +1,89 @@
+export const NODE_TYPES = {
+  trigger: {
+    label: "Trigger",
+    color: "bg-green-500/20 border-green-500/50 text-green-400",
+    dot: "bg-green-400",
+    icon: "⚡",
+    description: "Voice command or event that starts this flow",
+  },
+  condition: {
+    label: "Condition",
+    color: "bg-amber-500/20 border-amber-500/50 text-amber-400",
+    dot: "bg-amber-400",
+    icon: "◇",
+    description: "Branch logic based on a condition",
+  },
+  action: {
+    label: "Action",
+    color: "bg-primary/20 border-primary/50 text-primary",
+    dot: "bg-primary",
+    icon: "▶",
+    description: "Execute a task or API call",
+  },
+  response: {
+    label: "Response",
+    color: "bg-violet-500/20 border-violet-500/50 text-violet-400",
+    dot: "bg-violet-400",
+    icon: "💬",
+    description: "Agent speaks a response to the user",
+  },
+  llm: {
+    label: "LLM Decision",
+    color: "bg-cyan-500/20 border-cyan-500/50 text-cyan-400",
+    dot: "bg-cyan-400",
+    icon: "🧠",
+    description: "Use AI to decide next step",
+  },
+  end: {
+    label: "End",
+    color: "bg-red-500/20 border-red-500/50 text-red-400",
+    dot: "bg-red-400",
+    icon: "⏹",
+    description: "End of the workflow",
+  },
+};
+
+export const DEFAULT_WORKFLOWS = [
+  {
+    name: "Handle New Order",
+    nodes: [
+      { id: "n1", type: "trigger", label: "User says: 'New order'", x: 80, y: 160, config: {} },
+      { id: "n2", type: "llm", label: "Extract order details", x: 300, y: 100, config: {} },
+      { id: "n3", type: "condition", label: "Is inventory available?", x: 520, y: 160, config: {} },
+      { id: "n4", type: "action", label: "Create order in CRM", x: 740, y: 80, config: {} },
+      { id: "n5", type: "response", label: "Confirm order to user", x: 960, y: 80, config: {} },
+      { id: "n6", type: "response", label: "Notify: Out of stock", x: 740, y: 260, config: {} },
+      { id: "n7", type: "end", label: "Flow Complete", x: 1180, y: 160, config: {} },
+    ],
+    edges: [
+      { id: "e1", from: "n1", to: "n2" },
+      { id: "e2", from: "n2", to: "n3" },
+      { id: "e3", from: "n3", to: "n4" },
+      { id: "e4", from: "n3", to: "n6" },
+      { id: "e5", from: "n4", to: "n5" },
+      { id: "e6", from: "n5", to: "n7" },
+      { id: "e7", from: "n6", to: "n7" },
+    ],
+  },
+  {
+    name: "Agent Status Check",
+    nodes: [
+      { id: "n1", type: "trigger", label: "User asks: 'Agent status'", x: 80, y: 200, config: {} },
+      { id: "n2", type: "action", label: "Fetch all agent metrics", x: 300, y: 200, config: {} },
+      { id: "n3", type: "llm", label: "Summarize status", x: 520, y: 200, config: {} },
+      { id: "n4", type: "response", label: "Report status to user", x: 740, y: 200, config: {} },
+      { id: "n5", type: "end", label: "Done", x: 960, y: 200, config: {} },
+    ],
+    edges: [
+      { id: "e1", from: "n1", to: "n2" },
+      { id: "e2", from: "n2", to: "n3" },
+      { id: "e3", from: "n3", to: "n4" },
+      { id: "e4", from: "n4", to: "n5" },
+    ],
+  },
+  {
+    name: "Blank Canvas",
+    nodes: [],
+    edges: [],
+  },
+];

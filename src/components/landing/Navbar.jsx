@@ -19,6 +19,7 @@ export default function Navbar() {
     { label: "AI Docs", href: "/docs", isRoute: true },
     { label: "OS Tools", href: "/tools/opensource", isRoute: true },
     { label: "Crypto Arch", href: "/crypto-architecture", isRoute: true },
+    { label: "Workflow", href: "/workflow", isRoute: true },
   ];
 
   return (

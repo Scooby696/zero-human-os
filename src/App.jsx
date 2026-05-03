@@ -15,6 +15,7 @@ import Monetization from './pages/Monetization';
 import AgentDocs from './pages/AgentDocs';
 import OpenSourceTools from './pages/OpenSourceTools';
 import CryptoArchitecture from './pages/CryptoArchitecture';
+import WorkflowBuilder from './pages/WorkflowBuilder';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -52,6 +53,7 @@ const AuthenticatedApp = () => {
         <Route path="/docs" element={<AgentDocs />} />
         <Route path="/tools/opensource" element={<OpenSourceTools />} />
         <Route path="/crypto-architecture" element={<CryptoArchitecture />} />
+        <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <ZHSVoiceButton />
