@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Home from './pages/Home';
 import ZHSVoiceButton from './components/voice/ZHSVoiceButton';
 import Dashboard from './pages/Dashboard';
+import InitialSetup from './pages/InitialSetup';
 import DashboardAgents from './pages/DashboardAgents';
 import DashboardTools from './pages/DashboardTools';
 import Audit from './pages/Audit';
@@ -51,6 +52,7 @@ const AuthenticatedApp = () => {
     <>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/setup" element={<InitialSetup />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/agents" element={<DashboardAgents />} />
         <Route path="/dashboard/tools" element={<DashboardTools />} />

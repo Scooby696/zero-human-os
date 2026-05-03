@@ -33,7 +33,7 @@ export default function CTA() {
             <Button
               size="lg"
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl px-10 h-14 text-base gap-2 group shadow-lg shadow-primary/20"
-              onClick={() => base44.auth.redirectToLogin('/dashboard')}
+              onClick={() => base44.auth.redirectToLogin('/setup')}
             >
               <Zap className="w-5 h-5" />
               Deploy Your Zero Human Company

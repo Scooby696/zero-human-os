@@ -69,13 +69,13 @@ export default function Navbar() {
             <Button
               variant="ghost"
               className="text-muted-foreground hover:text-foreground"
-              onClick={() => base44.auth.redirectToLogin('/dashboard')}
+              onClick={() => base44.auth.redirectToLogin('/setup')}
             >
               Sign In
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl px-6"
-              onClick={() => base44.auth.redirectToLogin('/dashboard')}
+              onClick={() => base44.auth.redirectToLogin('/setup')}
             >
               Get Started
             </Button>
@@ -126,13 +126,13 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   className="w-full justify-center text-muted-foreground"
-                  onClick={() => base44.auth.redirectToLogin('/dashboard')}
+                  onClick={() => base44.auth.redirectToLogin('/setup')}
                 >
                   Sign In
                 </Button>
                 <Button
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-                  onClick={() => base44.auth.redirectToLogin('/dashboard')}
+                  onClick={() => base44.auth.redirectToLogin('/setup')}
                 >
                   Get Started
                 </Button>
