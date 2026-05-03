@@ -1,0 +1,52 @@
+{
+  "name": "NotificationPreference",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "User ID for this preference"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "agent_failure",
+        "budget_exceeded",
+        "security_alert",
+        "workflow_complete"
+      ],
+      "description": "Type of event to trigger on"
+    },
+    "email": {
+      "type": "boolean",
+      "default": true,
+      "description": "Send email notifications"
+    },
+    "slack": {
+      "type": "boolean",
+      "default": false,
+      "description": "Send Slack notifications"
+    },
+    "sms": {
+      "type": "boolean",
+      "default": false,
+      "description": "Send SMS notifications"
+    },
+    "slackWebhook": {
+      "type": "string",
+      "description": "Slack webhook URL (encrypted)"
+    },
+    "phoneNumber": {
+      "type": "string",
+      "description": "Phone number for SMS (encrypted)"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this preference is active"
+    }
+  },
+  "required": [
+    "userId",
+    "eventType"
+  ]
+}

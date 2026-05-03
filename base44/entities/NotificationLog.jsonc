@@ -1,0 +1,51 @@
+{
+  "name": "NotificationLog",
+  "type": "object",
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "description": "Type of event that triggered the notification"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User receiving the notification"
+    },
+    "channels": {
+      "type": "string",
+      "description": "JSON array of channels used (email, slack, sms)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Notification subject/title"
+    },
+    "message": {
+      "type": "string",
+      "description": "Notification message body"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "sent",
+        "failed",
+        "pending"
+      ],
+      "default": "pending",
+      "description": "Delivery status"
+    },
+    "details": {
+      "type": "string",
+      "description": "JSON object with event-specific details"
+    },
+    "errorMessage": {
+      "type": "string",
+      "description": "Error message if delivery failed"
+    }
+  },
+  "required": [
+    "eventType",
+    "userId",
+    "channels",
+    "subject",
+    "message"
+  ]
+}
