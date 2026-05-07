@@ -42,14 +42,44 @@ const tools = [
   // On-Chain
   { name: "Coinbase CDP (Base)", category: "On-Chain", plan: "Free / Pay-per-use", price: "$0+", url: "https://docs.cdp.coinbase.com", desc: "Agent wallets, smart contracts, and autonomous payments on Base.", badge: "Recommended" },
   { name: "Solana Web3.js", category: "On-Chain", plan: "Free (open-source)", price: "$0", url: "https://solana-labs.github.io/solana-web3.js", desc: "Build autonomous treasury and payment agents on Solana.", badge: "Free" },
+
+  // Agentic Projects — Finance, Business & E-commerce
+  { name: "Automated Trading Bot", category: "Agentic Projects", subcategory: "Finance, Business & E-commerce", plan: "Open Source", price: "$0", url: "https://github.com/topics/automated-trading-bot", desc: "Autonomous agent that monitors markets, executes trades, and manages a portfolio based on pre-set strategies.", badge: "Project" },
+  { name: "Product Recommendation Agent", category: "Agentic Projects", subcategory: "Finance, Business & E-commerce", plan: "Open Source", price: "$0", url: "https://github.com/topics/recommendation-agent", desc: "AI agent that personalizes product suggestions based on user behavior, purchase history, and preferences.", badge: "Project" },
+  { name: "E-commerce Personal Shopper Agent", category: "Agentic Projects", subcategory: "Finance, Business & E-commerce", plan: "Open Source", price: "$0", url: "https://github.com/topics/personal-shopper-agent", desc: "Agent that browses e-commerce catalogs, compares prices, and completes purchases autonomously on behalf of users.", badge: "Project" },
+  { name: "Recruitment Recommendation Agent", category: "Agentic Projects", subcategory: "Finance, Business & E-commerce", plan: "Open Source", price: "$0", url: "https://github.com/topics/recruitment-agent", desc: "Multi-agent system that screens resumes, ranks candidates, and recommends top applicants to hiring managers.", badge: "Project" },
+  { name: "Property Pricing Agent", category: "Agentic Projects", subcategory: "Finance, Business & E-commerce", plan: "Open Source", price: "$0", url: "https://github.com/topics/property-pricing-agent", desc: "Agentic system that scrapes listings, analyzes market data, and estimates real estate property prices.", badge: "Project" },
+
+  // Agentic Projects — Healthcare & Medical Systems
+  { name: "AI Health Assistant", category: "Agentic Projects", subcategory: "Healthcare & Medical Systems", plan: "Open Source", price: "$0", url: "https://github.com/topics/ai-health-assistant", desc: "Conversational medical agent that triages symptoms, answers health questions, and recommends next steps.", badge: "Project" },
+
+  // Agentic Projects — Customer Experience & Content
+  { name: "Content Personalization Agent", category: "Agentic Projects", subcategory: "Customer Experience & Content", plan: "Open Source", price: "$0", url: "https://github.com/topics/content-personalization-agent", desc: "Agent that curates and personalizes content feeds for users based on real-time engagement signals.", badge: "Project" },
+
+  // Agentic Projects — Education, Travel & Lifestyle
+  { name: "AI Tutor Agent", category: "Agentic Projects", subcategory: "Education, Travel & Lifestyle", plan: "Open Source", price: "$0", url: "https://github.com/topics/ai-tutor-agent", desc: "Adaptive learning agent that creates personalized study plans, quizzes students, and tracks progress over time.", badge: "Project" },
+  { name: "Travel Planning Agent", category: "Agentic Projects", subcategory: "Education, Travel & Lifestyle", plan: "Open Source", price: "$0", url: "https://github.com/topics/travel-planning-agent", desc: "End-to-end travel agent that searches flights, hotels, and activities, then builds a full itinerary autonomously.", badge: "Project" },
+  { name: "Recipe & Meal Planning Agent", category: "Agentic Projects", subcategory: "Education, Travel & Lifestyle", plan: "Open Source", price: "$0", url: "https://github.com/topics/meal-planning-agent", desc: "Agent that plans weekly meals based on dietary preferences, generates shopping lists, and tracks nutrition.", badge: "Project" },
+
+  // Agentic Projects — Research & Data
+  { name: "Research Summarization Agent", category: "Agentic Projects", subcategory: "Research & Data", plan: "Open Source", price: "$0", url: "https://github.com/topics/research-agent", desc: "Agent that searches academic papers, synthesizes findings, and produces structured research summaries.", badge: "Project" },
+  { name: "Data Analysis Agent", category: "Agentic Projects", subcategory: "Research & Data", plan: "Open Source", price: "$0", url: "https://github.com/topics/data-analysis-agent", desc: "Agentic system that ingests CSV/SQL data, runs analysis, generates visualizations, and writes reports.", badge: "Project" },
+  { name: "Web Scraping & Report Agent", category: "Agentic Projects", subcategory: "Research & Data", plan: "Open Source", price: "$0", url: "https://github.com/topics/web-scraping-agent", desc: "Agent that autonomously browses websites, extracts structured data, and compiles it into formatted reports.", badge: "Project" },
+
+  // Agentic Projects — Productivity & DevOps
+  { name: "Code Review Agent", category: "Agentic Projects", subcategory: "Productivity & DevOps", plan: "Open Source", price: "$0", url: "https://github.com/topics/code-review-agent", desc: "Agent that reviews pull requests, suggests improvements, flags bugs, and enforces coding standards automatically.", badge: "Project" },
+  { name: "Email & Calendar Management Agent", category: "Agentic Projects", subcategory: "Productivity & DevOps", plan: "Open Source", price: "$0", url: "https://github.com/topics/email-agent", desc: "AI agent that reads, drafts, and prioritizes emails while scheduling calendar events based on context.", badge: "Project" },
+  { name: "Customer Support Agent", category: "Agentic Projects", subcategory: "Productivity & DevOps", plan: "Open Source", price: "$0", url: "https://github.com/topics/customer-support-agent", desc: "Multi-turn support agent with tool use for order lookups, FAQ retrieval, and ticket escalation.", badge: "Project" },
+  { name: "Social Media Management Agent", category: "Agentic Projects", subcategory: "Productivity & DevOps", plan: "Open Source", price: "$0", url: "https://github.com/topics/social-media-agent", desc: "Agent that generates posts, schedules content across platforms, and monitors engagement metrics.", badge: "Project" },
 ];
 
-const categories = ["All", "Orchestration", "LLM", "Memory", "Automation", "Hosting", "Monitoring", "On-Chain"];
+const categories = ["All", "Orchestration", "LLM", "Memory", "Automation", "Hosting", "Monitoring", "On-Chain", "Agentic Projects"];
 
 const badgeColors = {
   "Recommended": "bg-primary/15 text-primary",
   "Top Pick": "bg-amber-400/15 text-amber-400",
   "Free": "bg-green-400/15 text-green-400",
+  "Project": "bg-violet-400/15 text-violet-400",
 };
 
 export default function ToolsDatabase() {
@@ -121,6 +151,9 @@ export default function ToolsDatabase() {
               <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0 mt-0.5" />
             </div>
             <h3 className="text-base font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">{tool.name}</h3>
+            {tool.subcategory && (
+              <p className="text-[10px] font-medium text-violet-400/70 mb-1">{tool.subcategory}</p>
+            )}
             <p className="text-xs text-muted-foreground leading-relaxed mb-3">{tool.desc}</p>
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">{tool.plan}</span>
