@@ -55,7 +55,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    base44.auth.redirectToLogin(window.location.href);
+    // Prevent redirect loops - only redirect if not already on a login/auth page
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/login' && currentPath !== '/auth') {
+      base44.auth.redirectToLogin(window.location.href);
+    }
   };
 
   return (

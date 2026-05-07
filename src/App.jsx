@@ -37,17 +37,16 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors (but allow /setup for new users)
+  // Handle authentication errors (but allow /setup and public pages)
   const isSetupRoute = window.location.pathname === '/setup';
-  
-  if (authError && !isSetupRoute) {
+  const isHomeRoute = window.location.pathname === '/';
+
+  if (authError && !isSetupRoute && !isHomeRoute) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
     }
+    // For auth_required: don't auto-redirect (causes loop), just render the app
+    // Pages that need auth will handle it themselves
   }
 
   // Render the main app
