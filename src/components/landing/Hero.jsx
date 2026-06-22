@@ -2,9 +2,10 @@ import React from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Zap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
 
 export default function Hero() {
+  const navigate = useNavigate();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background */}
@@ -76,7 +77,7 @@ export default function Hero() {
           <Button
             size="lg"
             className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl px-8 h-14 text-base gap-2 group shadow-lg shadow-primary/20"
-            onClick={() => base44.auth.redirectToLogin()}
+            onClick={() => navigate("/setup")}
           >
             <Zap className="w-5 h-5" />
             Deploy Your Company

@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { Bot, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navLinks = [
     { label: "Agents", href: "#agents" },
@@ -69,13 +70,13 @@ export default function Navbar() {
             <Button
               variant="ghost"
               className="text-muted-foreground hover:text-foreground"
-              onClick={() => base44.auth.redirectToLogin('/setup')}
+              onClick={() => navigate('/login')}
             >
               Sign In
             </Button>
             <Button
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl px-6"
-              onClick={() => base44.auth.redirectToLogin('/setup')}
+              onClick={() => navigate('/setup')}
             >
               Get Started
             </Button>
@@ -126,13 +127,13 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   className="w-full justify-center text-muted-foreground"
-                  onClick={() => base44.auth.redirectToLogin('/setup')}
+                  onClick={() => navigate('/login')}
                 >
                   Sign In
                 </Button>
                 <Button
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-                  onClick={() => base44.auth.redirectToLogin('/setup')}
+                  onClick={() => navigate('/setup')}
                 >
                   Get Started
                 </Button>
