@@ -29,6 +29,7 @@ import CostOptimization from './pages/CostOptimization';
 import DeploymentAudit from './pages/DeploymentAudit';
 import FunctionalityAudit from './pages/FunctionalityAudit';
 import SecurityAudit from './pages/SecurityAudit';
+import TokenomicsEngine from './pages/TokenomicsEngine';
 
 const AuthLoading = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -73,6 +74,7 @@ const AuthenticatedApp = () => {
           <Route path="/audit/deployment" element={<DeploymentAudit />} />
           <Route path="/audit/functionality" element={<FunctionalityAudit />} />
           <Route path="/audit/security" element={<SecurityAudit />} />
+          <Route path="/tokenomics" element={<TokenomicsEngine />} />
         </Route>
 
         <Route path="*" element={<PageNotFound />} />

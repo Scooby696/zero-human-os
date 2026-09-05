@@ -17,6 +17,7 @@ export default function Navbar() {
     { label: "Community", href: "#community" },
     { label: "Audit", href: "/audit", isRoute: true },
     { label: "Monetize", href: "/monetization", isRoute: true },
+    { label: "Tokenomics", href: "/tokenomics", isRoute: true },
     { label: "AI Docs", href: "/docs", isRoute: true },
     { label: "OS Tools", href: "/tools/opensource", isRoute: true },
     { label: "Crypto Arch", href: "/crypto-architecture", isRoute: true },
