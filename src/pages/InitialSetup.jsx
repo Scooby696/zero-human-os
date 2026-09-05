@@ -138,7 +138,7 @@ export default function InitialSetup() {
               <Zap className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl sm:text-4xl font-black text-foreground">
+              <h1 className="text-2xl sm:text-4xl font-black text-foreground">
                 Deploy Your Business
               </h1>
               {user && (
@@ -191,7 +191,7 @@ export default function InitialSetup() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`p-6 rounded-xl border-2 transition-all cursor-pointer hover:shadow-lg ${
+                className={`p-4 sm:p-6 rounded-xl border-2 transition-all cursor-pointer hover:shadow-lg ${
                   isCompleted
                     ? "bg-green-400/5 border-green-400/30"
                     : isActive

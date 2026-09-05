@@ -43,7 +43,7 @@ export default function CTA() {
           </div>
 
           {/* Social links */}
-          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 px-2 text-sm text-muted-foreground">
             <a
               href="https://x.com/zerohuman87307"
               target="_blank"
@@ -55,7 +55,7 @@ export default function CTA() {
               </svg>
               @zerohuman87307
             </a>
-            <span className="w-px h-4 bg-border/50" />
+            <span className="hidden sm:block w-px h-4 bg-border/50" />
             <a
               href="https://t.me/zerohumansystems"
               target="_blank"
@@ -65,7 +65,7 @@ export default function CTA() {
               <MessageCircle className="w-4 h-4" />
               t.me/zerohumansystems
             </a>
-            <span className="w-px h-4 bg-border/50" />
+            <span className="hidden sm:block w-px h-4 bg-border/50" />
             <a
               href="mailto:zerohumansystems@gmail.com"
               className="flex items-center gap-2 hover:text-foreground transition-colors"

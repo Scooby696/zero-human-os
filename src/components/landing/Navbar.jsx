@@ -37,7 +37,7 @@ export default function Navbar() {
                 className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-xl"
               />
             </div>
-            <span className="text-lg sm:text-xl font-bold tracking-tight text-foreground">
+            <span className="text-base sm:text-xl font-bold tracking-tight text-foreground">
               Zero Human<span className="text-primary"> Systems</span>
             </span>
           </Link>
@@ -127,13 +127,13 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   className="w-full justify-center text-muted-foreground"
-                  onClick={() => navigate('/login')}
+                  onClick={() => { setMobileOpen(false); navigate('/login'); }}
                 >
                   Sign In
                 </Button>
                 <Button
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-                  onClick={() => navigate('/setup')}
+                  onClick={() => { setMobileOpen(false); navigate('/setup'); }}
                 >
                   Get Started
                 </Button>

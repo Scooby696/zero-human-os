@@ -38,7 +38,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight leading-[0.88] mb-6">
+          className="text-4xl sm:text-6xl md:text-8xl font-black tracking-tight leading-[0.88] mb-6">
           
           <span className="text-foreground">ZERO HUMAN</span>
           <br />

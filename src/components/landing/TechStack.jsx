@@ -66,10 +66,10 @@ export default function TechStack() {
             Production-grade or fully free — your choice. Toggle between stacks.
           </p>
           {/* Toggle */}
-          <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-secondary/50 border border-border/50">
+          <div className="inline-flex flex-wrap justify-center items-center gap-1 p-1 rounded-xl bg-secondary/50 border border-border/50">
             <button
               onClick={() => setShowFree(false)}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3 sm:px-5 py-2 rounded-lg text-sm font-medium transition-all ${
                 !showFree ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -77,7 +77,7 @@ export default function TechStack() {
             </button>
             <button
               onClick={() => setShowFree(true)}
-              className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3 sm:px-5 py-2 rounded-lg text-sm font-medium transition-all ${
                 showFree ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
               }`}
             >

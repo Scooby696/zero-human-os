@@ -36,8 +36,8 @@ export default function AgentActivity() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border/50">
-                  {["Agent", "Status", "Tasks", "Uptime", "Cost/hr", "Revenue", "Last Action"].map((h) => (
-                    <th key={h} className="text-left text-xs font-medium text-muted-foreground pb-3 pr-4 whitespace-nowrap">{h}</th>
+                  {[["Agent", ""], ["Status", ""], ["Tasks", ""], ["Uptime", "hidden sm:table-cell"], ["Cost/hr", ""], ["Revenue", ""], ["Last Action", "hidden md:table-cell"]].map(([h, cls]) => (
+                    <th key={h} className={`text-left text-xs font-medium text-muted-foreground pb-3 pr-4 whitespace-nowrap ${cls}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -54,10 +54,10 @@ export default function AgentActivity() {
                         </span>
                       </td>
                       <td className="py-3 pr-4 text-muted-foreground">{agent.tasks.toLocaleString()}</td>
-                      <td className="py-3 pr-4 text-muted-foreground">{agent.uptime}</td>
+                      <td className="hidden sm:table-cell py-3 pr-4 text-muted-foreground">{agent.uptime}</td>
                       <td className="py-3 pr-4 text-cyan-400 font-mono">{agent.cost}</td>
                       <td className="py-3 pr-4 text-green-400 font-semibold">{agent.revenue}</td>
-                      <td className="py-3 pr-4 text-muted-foreground text-xs max-w-[200px] truncate">{agent.lastAction}</td>
+                      <td className="hidden md:table-cell py-3 pr-4 text-muted-foreground text-xs max-w-[200px] truncate">{agent.lastAction}</td>
                     </tr>
                   );
                 })}
