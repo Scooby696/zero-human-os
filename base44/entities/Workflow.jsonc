@@ -22,6 +22,13 @@
       "type": "string",
       "description": "JSON stringified array of workflow edges"
     },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User IDs of workspace members who can view and edit this workflow"
+    },
     "isActive": {
       "type": "boolean",
       "default": true,
@@ -54,6 +61,9 @@
           "created_by_id": "{{user.id}}"
         },
         {
+          "data.members": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -64,6 +74,13 @@
       "$or": [
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.members": {
+            "$in": [
+              "{{user.id}}"
+            ]
+          }
         },
         {
           "user_condition": {
