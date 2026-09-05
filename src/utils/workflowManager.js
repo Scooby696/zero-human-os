@@ -3,6 +3,11 @@ import { base44 } from "@/api/base44Client";
 export function createWorkflowManager() {
   const createWorkflow = async (workspaceId, name, nodes, edges, description = "") => {
     try {
+      // Copy the workspace member list so every teammate can access
+      // workflows created in the shared workspace
+      const workspace = await base44.entities.Workspace.get(workspaceId);
+      const members = Array.isArray(workspace?.members) ? workspace.members : [];
+
       const workflow = await base44.entities.Workflow.create({
         workspaceId,
         name,
@@ -11,6 +16,7 @@ export function createWorkflowManager() {
         edges: JSON.stringify(edges),
         isActive: true,
         executionCount: 0,
+        members,
       });
       return workflow;
     } catch (error) {

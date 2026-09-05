@@ -14,6 +14,7 @@ export function createWorkspaceManager() {
         ownerId,
         description,
         isActive: true,
+        members: [ownerId],
       });
 
       // Add owner as admin member
@@ -104,36 +105,16 @@ export function createWorkspaceManager() {
 
   const acceptInvite = async (inviteId, userId, email) => {
     try {
-      const invite = await base44.entities.WorkspaceInvite.get(inviteId);
-
-      if (!invite) {
-        return { error: "Invite not found" };
-      }
-
-      if (invite.email !== email) {
-        return { error: "Email mismatch" };
-      }
-
-      if (new Date(invite.expiresAt) < new Date()) {
-        return { error: "Invite expired" };
-      }
-
-      // Add member
-      await base44.entities.WorkspaceTeamMember.create({
-        workspaceId: invite.workspaceId,
-        userId,
-        email,
-        role: invite.role,
+      // Handled server-side so the new member is added to the workspace's
+      // member list (which grants shared access) in one trusted step
+      const response = await base44.functions.invoke("acceptWorkspaceInvite", {
+        inviteId,
       });
-
-      // Update invite status
-      await base44.entities.WorkspaceInvite.update(inviteId, {
-        status: "accepted",
-        acceptedBy: userId,
-      });
-
-      const workspace = await getWorkspace(invite.workspaceId);
-      return { success: true, workspace };
+      const result = response.data || {};
+      if (result.error) {
+        return { error: result.error };
+      }
+      return { success: true, workspace: result.workspace };
     } catch (error) {
       console.error("Error accepting invite:", error);
       return { error: error.message };
@@ -205,6 +186,20 @@ export function createWorkspaceManager() {
       if (members.length === 0) return { error: "Member not found" };
 
       await base44.entities.WorkspaceTeamMember.delete(members[0].id);
+
+      // Revoke shared access: remove the user from the workspace member list
+      // and from all workflows in this workspace
+      const memberList = Array.isArray(workspace.members)
+        ? workspace.members.filter((id) => id !== userId)
+        : [];
+      await base44.entities.Workspace.update(workspaceId, {
+        members: memberList,
+      });
+      await base44.entities.Workflow.updateMany(
+        { workspaceId },
+        { $pull: { members: userId } }
+      );
+
       return { success: true };
     } catch (error) {
       console.error("Error removing member:", error);
